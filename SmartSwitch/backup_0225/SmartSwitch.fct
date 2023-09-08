@@ -1,0 +1,4 @@
+main DSTACK_USAGE:0 DSTACK_LEVEL:0 FILE:"SmartSwitch.c" LINE:187
+registers DSTACK_USAGE:2 DSTACK_LEVEL:2 FILE:"registers.h" LINE:1
+bin2bcd DSTACK_USAGE:1 DSTACK_LEVEL:3 FILE:"C:\Program Files (x86)\CVAVR\lib\bcd.lib" LINE:28
+timer1_compa_isr DSTACK_USAGE:6 DSTACK_LEVEL:9 FILE:"interrupts.h" LINE:3

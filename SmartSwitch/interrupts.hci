@@ -1,0 +1,9 @@
+VERSION:3 SOURCE_TIMESTAMP:56B79D14
+NODE:F LEVEL:0 LINE:3 "timer1_compa_isr(void)"
+NODE:V LEVEL:0 LINE:155 "input_buffer_counter -> RAM:????"
+NODE:V LEVEL:0 LINE:156 "input_buffer -> RAM:????"
+NODE:V LEVEL:0 LINE:157 "frame_received -> R2.3"
+NODE:V LEVEL:0 LINE:159 "output_buffer_counter -> RAM:????"
+NODE:V LEVEL:0 LINE:160 "output_buffer -> RAM:????"
+NODE:F LEVEL:0 LINE:163 "usart_rx_isr(void)"
+NODE:F LEVEL:0 LINE:201 "usart_tx_isr(void)"

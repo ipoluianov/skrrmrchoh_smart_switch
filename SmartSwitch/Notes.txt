@@ -1,0 +1,192 @@
+Я тут изобретал переставлялку битов.
+У меня в устройстве есть 8 пиновый коннектор. Если я подаю сигнал на самый левый пин, я получаю на дисплее число 16. Если подаю на второй пин, то число 32. потом получаю числа 64, 128, 1, 2, 4, 8 если по пинам двигаюсь вправо.
+
+16, 32, 64, 128, 1, 2, 4, 8
+
+Хочу иметь в переменной человеческие значения. Подал сигнал на самый левый пин - получи 128.
+
+Вот что я изобрел:
+
+        TMP= reg_165_1; 
+        BIT_SWITCHER= 0;
+        if(TMP & 0b00000001)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 8;
+        };        
+        if(TMP & 0b00000010)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 4;
+        };
+        if(TMP & 0b00000100)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 2;
+        };
+        if(TMP & 0b00001000)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 1;
+        };
+        if(TMP & 0b00010000)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 128;
+        };
+        if(TMP & 0b00100000)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 64;
+        };
+        if(TMP & 0b01000000)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 32;
+        };
+        if(TMP & 0b10000000)      
+        {
+        BIT_SWITCHER= BIT_SWITCHER+ 16;
+        }; 
+        
+        reg_165_1 = BIT_SWITCHER;
+
+Но переменных типа reg_165_1 у меня всего три. Есть еще reg_165_2 и reg_165_3. Ну, я код и повторил три раза. Работает, но читать его неудобно. Что бы с ним сделать?
+
+
+
+
+while(1)
+{
+	реле_предыдущее_состояние = реле;
+	Если(включен выключатель)
+	{
+		реле=1;
+	};
+	Если(реле !=реле_предыдущее_состояние)
+	{
+		Посмотри конфигурацию();
+			Если(в конфигерации написано что при реле==1 надо сделать чтобы было реле=3)
+			{
+				реле=3;
+			};
+	}
+
+	установить_реле (реле);	
+
+}
+
+
+
+
+	get_165_reg();
+        rattle_supression();
+        edge_detection();
+        
+        relays_16_oldstate = relays_16;  
+        switches_event_check();
+                           
+        relays_edge_detection();
+        relays_event_check();
+
+        relays_edge_detection();
+        relays_event_check();
+        /*
+        Call functions relays_"edge_detection" and "relays_event_check" twice or more times
+        is nesessary because of possible nesting of user settings. Here's an example:
+        Switch #0 turns on relay #1.
+        Turning on relay #1 turns on relay #15. That situation is OK.
+        Then, user can program that turning on relay #15 turns on relay #8. If you call
+        the functions once, events will be as following:
+        Assume that all relays turned off;
+        "edge detection" detects edge on SW0;
+        relays_16_oldstate = 0;
+        "switches_event_check" turns relay #1 on;
+        "relays_edge_detection" detects that relay #1 is on , which
+        turns relay #15 by "relays_event_check". Now "relays_16" contains turned on 
+        relays 1 and 15. At the next iteration of "while" cycle
+        assigning "relays_16_oldstate = relays_16;" will be executes, and we won't be having
+        change on relay #15, so system won't turn on relay #8 as programmed.
+        Calling mentioned functions twice, or 3 times solves the issue.
+        */
+        
+               
+        //TMP_1_16_bit = hour*100+minute;
+
+        
+        if (relays_state[1] !=0)
+        {
+            TMP_1_16_bit = relays_state[1];
+            TMP_counter=200;
+        };
+   
+        digit_1 = (TMP_1_16_bit )/1000;
+        digit_2 = (TMP_1_16_bit -digit_1*1000 )/100;
+        digit_3 = (TMP_1_16_bit -digit_1*1000 -digit_2*100)/10;
+        digit_4 = (TMP_1_16_bit -digit_1*1000 -digit_2*100-digit_3*10);
+        
+
+        if(TMP_counter>0)
+        {
+            TMP_counter--;
+        }
+        else
+        {
+            TMP_1_16_bit = relays_state[1];
+        };
+        
+        
+        relay_high=relays_16 / 255;
+        TMP_relay_16_bit = relay_high * 256;
+        relay_low =relays_16 - TMP_relay_16_bit;
+        spi(relay_low); 
+        spi(relay_high);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void main(void)
+{
+registers();
+Relay_reset=1;
+
+while (1)
+      {                
+
+        get_165_reg(); //считать состояние выключателей
+        rattle_supression();// подавить дребезг выключателей
+        edge_detection();//выловить все фронты на всех выключателях
+        
+        relays_16_oldstate = relays_16; сохранить старое состояние всех реле  
+        switches_event_check();// проверяет все фронты на всех выключателях и включает нужные реле согласно ЕЕПРОМ
+                           
+        relays_edge_detection();//вылавливает фронты на реле после того, как switches_event_check() повключало или повыключало реле
+        relays_event_check();//включает нужные реле по событиям на других реле согласно ЕЕПРОМ
+
+        relays_edge_detection();// вызываю второй раз чтобы реле могло включить реле
+        relays_event_check();// вызываю второй раз чтобы реле могло включить реле
+        
+	//дальше отправляю состояние всех реле по SPI "драйверу реле"
+        relay_high=relays_16 / 255;
+        TMP_relay_16_bit = relay_high * 256;
+        relay_low =relays_16 - TMP_relay_16_bit;
+        spi(relay_low); 
+        spi(relay_high);
+ 
+                    
+      }
+}
+        

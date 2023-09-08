@@ -1,0 +1,756 @@
+void registers()
+{
+
+// Input/Output Ports initialization
+// Port A initialization
+// Func7=Out Func6=Out Func5=Out Func4=Out Func3=Out Func2=Out Func1=Out Func0=Out 
+// State7=1 State6=1 State5=1 State4=1 State3=1 State2=1 State1=1 State0=1 
+PORTA=0xFF;
+DDRA=0xFF;
+
+// Port B initialization
+// Func7=Out Func6=In Func5=Out Func4=Out Func3=Out Func2=Out Func1=Out Func0=In 
+// State7=0 State6=P State5=1 State4=0 State3=0 State2=0 State1=0 State0=P 
+PORTB=0x61;
+DDRB=0xBE;
+
+// Port C initialization
+// Func7=In Func6=Out Func5=Out Func4=Out Func3=Out Func2=In Func1=In Func0=In 
+// State7=P State6=0 State5=0 State4=0 State3=0 State2=P State1=P State0=P 
+//PORTC=0x87;
+//DDRC=0x78;
+
+// Port C initialization
+// Func7=Out Func6=Out Func5=Out Func4=Out Func3=Out Func2=In Func1=In Func0=In 
+// State7=0 State6=0 State5=0 State4=0 State3=0 State2=P State1=P State0=P 
+PORTC=0x07;
+DDRC=0xF8;
+
+// Port D initialization
+// Func7=In Func6=In Func5=In Func4=In Func3=In Func2=Out Func1=Out Func0=In 
+// State7=P State6=P State5=P State4=P State3=P State2=0 State1=0 State0=P 
+DDRD=0x06;
+PORTD=0xF9;
+
+// Timer/Counter 0 initialization
+// Clock source: System Clock
+// Clock value: Timer 0 Stopped
+// Mode: Normal top=0xFF
+// OC0 output: Disconnected
+TCCR0=0x00;
+TCNT0=0x00;
+OCR0=0x00;
+
+// Timer/Counter 1 initialization
+// Clock source: System Clock
+// Clock value: 2000.000 kHz
+// Mode: CTC top=OCR1A
+// OC1A output: Discon.
+// OC1B output: Discon.
+// Noise Canceler: Off
+// Input Capture on Falling Edge
+// Timer1 Overflow Interrupt: Off
+// Input Capture Interrupt: Off
+// Compare A Match Interrupt: On
+// Compare B Match Interrupt: Off
+TCCR1A=0x00;
+TCCR1B=0x0A;
+TCNT1H=0x00;
+TCNT1L=0x00;
+ICR1H=0x00;
+ICR1L=0x00;
+OCR1AH=0x27;
+OCR1AL=0x10;
+OCR1BH=0x00;
+OCR1BL=0x00;
+
+// Timer/Counter 2 initialization
+// Clock source: System Clock
+// Clock value: Timer2 Stopped
+// Mode: Normal top=0xFF
+// OC2 output: Disconnected
+ASSR=0x00;
+TCCR2=0x00;
+TCNT2=0x00;
+OCR2=0x00;
+
+// External Interrupt(s) initialization
+// INT0: Off
+// INT1: Off
+// INT2: Off
+MCUCR=0x00;
+MCUCSR=0x00;
+
+
+// Timer(s)/Counter(s) Interrupt(s) initialization
+TIMSK=0x10;
+
+// USART initialization
+// Communication Parameters: 8 Data, 1 Stop, No Parity
+// USART Receiver: On
+// USART Transmitter: On
+// USART Mode: Asynchronous
+// USART Baud Rate: 115200 (Double Speed Mode)
+UCSRA=(0<<RXC) | (0<<TXC) | (0<<UDRE) | (0<<FE) | (0<<DOR) | (0<<UPE) | (1<<U2X) | (0<<MPCM);
+UCSRB=(1<<RXCIE) | (1<<TXCIE) | (0<<UDRIE) | (1<<RXEN) | (1<<TXEN) | (0<<UCSZ2) | (0<<RXB8) | (0<<TXB8);
+UCSRC=(1<<URSEL) | (0<<UMSEL) | (0<<UPM1) | (0<<UPM0) | (0<<USBS) | (1<<UCSZ1) | (1<<UCSZ0) | (0<<UCPOL);
+UBRRH=0x00;
+UBRRL=0x10;
+
+// Analog Comparator initialization
+// Analog Comparator: Off
+// Analog Comparator Input Capture by Timer/Counter 1: Off
+ACSR=0x80;
+SFIOR=0x00;
+
+// ADC initialization
+// ADC disabled
+ADCSRA=0x00;
+
+// SPI initialization
+// SPI Type: Master
+// SPI Clock Rate: 1000.000 kHz
+// SPI Clock Phase: Cycle Start
+// SPI Clock Polarity: Low
+// SPI Data Order: MSB First
+//SPCR=0x51;
+//SPSR=0x00;
+
+// SPI initialization
+// SPI Type: Master
+// SPI Clock Rate: 1000.000 kHz
+// SPI Clock Phase: Cycle Start
+// SPI Clock Polarity: Low
+// SPI Data Order: LSB First
+SPCR=0x71;
+SPSR=0x00;
+
+// TWI initialization
+// TWI disabled
+TWCR=0x00;
+
+// I2C Bus initialization
+i2c_init();
+
+i2c_start();
+i2c_write(0xd0);
+i2c_write(7);           //Reset time correction byte
+i2c_write(bin2bcd(calibration));
+i2c_stop();
+
+
+
+        digit_1 = 17;
+        digit_2 = 17;
+        digit_3 = 17;
+        digit_4 = 17; 
+
+        
+        i2c_start();
+        i2c_write(0xd0);
+        i2c_write(0);
+        i2c_start();
+        i2c_write(0xd1);
+        sec=bcd2bin(i2c_read(1)&0x7F);
+        minute=bcd2bin(i2c_read(1)&0x7F);
+        hour=bcd2bin(i2c_read(1)&0x3F); 
+        day=bcd2bin(i2c_read(1)&0x07);
+        date=bcd2bin(i2c_read(1)&0x3F);
+        month=bcd2bin(i2c_read(1)&0x1F);
+        year=bcd2bin(i2c_read(1)&0xFF);
+        calibration=bcd2bin(i2c_read(1)&0xFF);
+        year_thousands=bcd2bin(i2c_read(0)&0xFF);
+        i2c_stop(); 
+        
+        {
+            int i;
+            for (i = 0; i < 16; i++)
+                timers[i] = 0;
+        }
+        
+        
+        
+        /*
+        {   //Prevents generating "rising edge" event after reset on all opened switches 
+            unsigned  i=0;
+            for (i=0; i < (double_click_counter_value + 10); i++)
+            {
+                get_165_reg();
+                contact_bounce_supression();
+                edge_detection();
+            };
+        }             
+        */
+     
+settings[0]=32; //how many lines of settings are there;
+settings[1]=1;  //invert switches, 0-NO, 1-YES
+settings[2]=1;   //how many minutes switching relays OFF will be prohibited when function is used
+                    // 0= function can't be used; 5 is maximum value;
+                    //any value greater than 5 will be rewtitten to 5 
+settings[3]=1;  //Delay (in minutes) before ALL relays will be switched off when function is used;
+                // 0 - immideately; 5 is maximum; 0xFF - never
+                // If value is greater than 5 and less than 255, value will be rewtitten to 5
+settings[4]=0;
+settings[5]=0;
+settings[6]=0;
+settings[7]=0;
+settings[8]=0;
+settings[9]=0;
+settings[10]=0;
+settings[11]=0;
+settings[12]=0;
+settings[13]=0;
+settings[14]=0;
+settings[15]=0;
+
+settings_line_1[0] = 0;    //Relay number 0...15
+settings_line_1[1] = 2;    //Action 0-turn OFF; 1-turn ON; 2- invert
+settings_line_1[2] = 0;    //falling edge on switch #...
+settings_line_1[3] = 0;     //rising  edge on switch #...
+settings_line_1[4] = 0xFF; //falling edge on relay #...
+settings_line_1[5] = 0xFF;   //rising  edge on relay #...
+settings_line_1[6] = 0xFF; //double click on switch #...
+settings_line_1[7] = 00;    //time, hours
+settings_line_1[8] = 20;   //time, minutes
+settings_line_1[9] = 0xFF; // timer value, minutes. 255 - timer inactive. 0 - deactivate any timer on this relay 
+settings_line_1[10] = 0xFF;
+settings_line_1[11] = 0xFF;
+settings_line_1[12] = 0xFF;
+settings_line_1[13] = 0xFF;
+settings_line_1[14] = 0xFF;
+settings_line_1[15] = 0xFF;
+
+
+settings_line_2[0] = 1;    //Relay number 0...15
+settings_line_2[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_2[2] = 0xFF;    //falling edge on switch #...
+settings_line_2[3] = 10; //rising  edge on switch #...
+settings_line_2[4] = 0xFF; //falling edge on relay #...
+settings_line_2[5] = 0xFF; //rising  edge on relay #...
+settings_line_2[6] = 0xFF; //double click on switch #...
+settings_line_2[7] = 0xFF;    //time, hours
+settings_line_2[8] = 0xFF;   //time, minutes
+settings_line_2[9] = 0;
+settings_line_2[10] = 0xFF;
+settings_line_2[11] = 0xFF;
+settings_line_2[12] = 0xFF;
+settings_line_2[13] = 0xFF;
+settings_line_2[14] = 0xFF;
+settings_line_2[15] = 0xFF;
+
+settings_line_3[0] = 1;    //Relay number 0...15
+settings_line_3[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_3[2] = 1;    //falling edge on switch #...
+settings_line_3[3] = 0xFF; //rising  edge on switch #...
+settings_line_3[4] = 0xFF; //falling edge on relay #...
+settings_line_3[5] = 0xFF; //rising  edge on relay #...
+settings_line_3[6] = 0xFF; //double click on switch #...
+settings_line_3[7] = 0xFF;    //time, hours
+settings_line_3[8] = 0xFF;   //time, minutes
+settings_line_3[9] = 0xFF;
+settings_line_3[10] = 0xFF;
+settings_line_3[11] = 0xFF;
+settings_line_3[12] = 0xFF;
+settings_line_3[13] = 0xFF;
+settings_line_3[14] = 0xFF;
+settings_line_3[15] = 0xFF;
+
+settings_line_4[0] = 1;    //Relay number 0...15
+settings_line_4[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_4[2] = 0xFF; //falling edge on switch #...
+settings_line_4[3] = 1;    //rising  edge on switch #...
+settings_line_4[4] = 0xFF; //falling edge on relay #...
+settings_line_4[5] = 0xFF; //rising  edge on relay #...
+settings_line_4[6] = 0xFF; //double click on switch #...
+settings_line_4[7] = 0xFF;    //time, hours
+settings_line_4[8] = 0xFF;   //time, minutes
+settings_line_4[9] = 1;
+settings_line_4[10] = 0xFF;
+settings_line_4[11] = 0xFF;
+settings_line_4[12] = 0xFF;
+settings_line_4[13] = 0xFF;
+settings_line_4[14] = 0xFF;
+settings_line_4[15] = 0xFF;
+
+settings_line_5[0] = 2;    //Relay number 0...15
+settings_line_5[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_5[2] = 2;    //falling edge on switch #...
+settings_line_5[3] = 0xFF; //rising  edge on switch #...
+settings_line_5[4] = 0xFF; //falling edge on relay #...
+settings_line_5[5] = 0xFF; //rising  edge on relay #...
+settings_line_5[6] = 0xFF; //double click on switch #...
+settings_line_5[7] = 0xFF;    //time, hours
+settings_line_5[8] = 0xFF;   //time, minutes
+settings_line_5[9] = 0xFF;
+settings_line_5[10] = 0xFF;
+settings_line_5[11] = 0xFF;
+settings_line_5[12] = 0xFF;
+settings_line_5[13] = 0xFF;
+settings_line_5[14] = 0xFF;
+settings_line_5[15] = 0xFF;
+
+settings_line_6[0] = 2;    //Relay number 0...15
+settings_line_6[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_6[2] = 0xFF; //falling edge on switch #...
+settings_line_6[3] = 2;    //rising  edge on switch #...
+settings_line_6[4] = 0xFF; //falling edge on relay #...
+settings_line_6[5] = 0xFF; //rising  edge on relay #...
+settings_line_6[6] = 0xFF; //double click on switch #...
+settings_line_6[7] = 0xFF;    //time, hours
+settings_line_6[8] = 0xFF;   //time, minutes
+settings_line_6[9] = 0xFF;
+settings_line_6[10] = 0xFF;
+settings_line_6[11] = 0xFF;
+settings_line_6[12] = 0xFF;
+settings_line_6[13] = 0xFF;
+settings_line_6[14] = 0xFF;
+settings_line_6[15] = 0xFF;
+
+settings_line_7[0] = 3;    //Relay number 0...15
+settings_line_7[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_7[2] = 3;    //falling edge on switch #...
+settings_line_7[3] = 0xFF; //rising  edge on switch #...
+settings_line_7[4] = 0xFF; //falling edge on relay #...
+settings_line_7[5] = 0xFF; //rising  edge on relay #...
+settings_line_7[6] = 0xFF; //double click on switch #...
+settings_line_7[7] = 0xFF; //time, hours
+settings_line_7[8] = 0xFF; //time, minutes
+settings_line_7[9] = 0xFF;
+settings_line_7[10] = 0xFF;
+settings_line_7[11] = 0xFF;
+settings_line_7[12] = 0xFF;
+settings_line_7[13] = 0xFF;
+settings_line_7[14] = 0xFF;
+settings_line_7[15] = 0xFF;
+
+settings_line_8[0] = 3;   //Relay number 0...15
+settings_line_8[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_8[2] = 0xFF; //falling edge on switch #...
+settings_line_8[3] = 3;    //rising  edge on switch #...
+settings_line_8[4] = 0xFF; //falling edge on relay #...
+settings_line_8[5] = 0xFF; //rising  edge on relay #...
+settings_line_8[6] = 0xFF; //double click on switch #...
+settings_line_8[7] = 0xFF; //time, hours
+settings_line_8[8] = 0xFF; //time, minutes
+settings_line_8[9] = 0xFF;
+settings_line_8[10] = 0xFF;
+settings_line_8[11] = 0xFF;
+settings_line_8[12] = 0xFF;
+settings_line_8[13] = 0xFF;
+settings_line_8[14] = 0xFF;
+settings_line_8[15] = 0xFF;
+
+settings_line_9[0] = 4;   //Relay number 0...15
+settings_line_9[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_9[2] = 4;    //falling edge on switch #...
+settings_line_9[3] = 0xFF; //rising  edge on switch #...
+settings_line_9[4] = 0xFF; //falling edge on relay #...
+settings_line_9[5] = 0xFF; //rising  edge on relay #...
+settings_line_9[6] = 0xFF; //double click on switch #...
+settings_line_9[7] = 0xFF; //time, hours
+settings_line_9[8] = 0xFF; //time, minutes
+settings_line_9[9] = 0xFF;
+settings_line_9[10] = 0xFF;
+settings_line_9[11] = 0xFF;
+settings_line_9[12] = 0xFF;
+settings_line_9[13] = 0xFF;
+settings_line_9[14] = 0xFF;
+settings_line_9[15] = 0xFF;
+
+settings_line_10[0] = 4;   //Relay number 0...15
+settings_line_10[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_10[2] = 0xFF; //falling edge on switch #...
+settings_line_10[3] = 4;    //rising  edge on switch #...
+settings_line_10[4] = 0xFF; //falling edge on relay #...
+settings_line_10[5] = 0xFF; //rising  edge on relay #...
+settings_line_10[6] = 0xFF; //double click on switch #...
+settings_line_10[7] = 0xFF; //time, hours
+settings_line_10[8] = 0xFF; //time, minutes
+settings_line_10[9] = 0xFF;
+settings_line_10[10] = 0xFF;
+settings_line_10[11] = 0xFF;
+settings_line_10[12] = 0xFF;
+settings_line_10[13] = 0xFF;
+settings_line_10[14] = 0xFF;
+settings_line_10[15] = 0xFF;
+
+settings_line_11[0] = 5;   //Relay number 0...15
+settings_line_11[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_11[2] = 5;    //falling edge on switch #...
+settings_line_11[3] = 0xFF; //rising  edge on switch #...
+settings_line_11[4] = 0xFF; //falling edge on relay #...
+settings_line_11[5] = 0xFF; //rising  edge on relay #...
+settings_line_11[6] = 0xFF; //double click on switch #...
+settings_line_11[7] = 0xFF; //time, hours
+settings_line_11[8] = 0xFF; //time, minutes
+settings_line_11[9] = 0xFF;
+settings_line_11[10] = 0xFF;
+settings_line_11[11] = 0xFF;
+settings_line_11[12] = 0xFF;
+settings_line_11[13] = 0xFF;
+settings_line_11[14] = 0xFF;
+settings_line_11[15] = 0xFF;
+
+settings_line_12[0] = 5;   //Relay number 0...15
+settings_line_12[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_12[2] = 0xFF; //falling edge on switch #...
+settings_line_12[3] = 5;    //rising  edge on switch #...
+settings_line_12[4] = 0xFF; //falling edge on relay #...
+settings_line_12[5] = 0xFF; //rising  edge on relay #...
+settings_line_12[6] = 0xFF; //double click on switch #...
+settings_line_12[7] = 0xFF; //time, hours
+settings_line_12[8] = 0xFF; //time, minutes
+settings_line_12[9] = 0xFF;
+settings_line_12[10] = 0xFF;
+settings_line_12[11] = 0xFF;
+settings_line_12[12] = 0xFF;
+settings_line_12[13] = 0xFF;
+settings_line_12[14] = 0xFF;
+settings_line_12[15] = 0xFF;
+
+settings_line_13[0] = 6;   //Relay number 0...15
+settings_line_13[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_13[2] = 6; //falling edge on switch #...
+settings_line_13[3] = 0xFF; //rising  edge on switch #...
+settings_line_13[4] = 0xFF; //falling edge on relay #...
+settings_line_13[5] = 0xFF   ; //rising  edge on relay #...
+settings_line_13[6] = 0xFF; //double click on switch #...
+settings_line_13[7] = 0xFF; //time, hours
+settings_line_13[8] = 0xFF; //time, minutes
+settings_line_13[9] = 0xFF;
+settings_line_13[10] = 0xFF;
+settings_line_13[11] = 0xFF;
+settings_line_13[12] = 0xFF;
+settings_line_13[13] = 0xFF;
+settings_line_13[14] = 0xFF;
+settings_line_13[15] = 0xFF;
+
+settings_line_14[0] = 6;   //Relay number 0...15
+settings_line_14[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_14[2] = 0xFF; //falling edge on switch #...
+settings_line_14[3] = 6; //rising  edge on switch #...
+settings_line_14[4] = 0xFF;    //falling edge on relay #...
+settings_line_14[5] = 0xFF; //rising  edge on relay #...
+settings_line_14[6] = 0xFF; //double click on switch #...
+settings_line_14[7] = 0xFF; //time, hours
+settings_line_14[8] = 0xFF; //time, minutes
+settings_line_14[9] = 0xFF;
+settings_line_14[10] = 0xFF;
+settings_line_14[11] = 0xFF;
+settings_line_14[12] = 0xFF;
+settings_line_14[13] = 0xFF;
+settings_line_14[14] = 0xFF;
+settings_line_14[15] = 0xFF;
+
+settings_line_15[0] = 7;    //Relay number 0...15
+settings_line_15[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_15[2] = 7;    //falling edge on switch #...
+settings_line_15[3] = 0xFF;     //rising  edge on switch #...
+settings_line_15[4] = 0xFF; //falling edge on relay #...
+settings_line_15[5] = 0xFF;   //rising  edge on relay #...
+settings_line_15[6] = 0xFF; //double click on switch #...
+settings_line_15[7] = 0xFF;    //time, hours
+settings_line_15[8] = 0xFF;   //time, minutes
+settings_line_15[9] = 0xFF;
+settings_line_15[10] = 0xFF;
+settings_line_15[11] = 0xFF;
+settings_line_15[12] = 0xFF;
+settings_line_15[13] = 0xFF;
+settings_line_15[14] = 0xFF;
+settings_line_15[15] = 0xFF;
+
+settings_line_16[0] = 7;    //Relay number 0...15
+settings_line_16[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_16[2] = 0xFF; //falling edge on switch #...
+settings_line_16[3] = 7;    //rising  edge on switch #...
+settings_line_16[4] = 0xFF;   //falling edge on relay #...
+settings_line_16[5] = 0xFF; //rising  edge on relay #...
+settings_line_16[6] = 0xFF; //double click on switch #...
+settings_line_16[7] = 0xFF;    //time, hours
+settings_line_16[8] = 0xFF;   //time, minutes
+settings_line_16[9] = 0xFF;
+settings_line_16[10] = 0xFF;
+settings_line_16[11] = 0xFF;
+settings_line_16[12] = 0xFF;
+settings_line_16[13] = 0xFF;
+settings_line_16[14] = 0xFF;
+settings_line_16[15] = 0xFF;
+
+settings_line_17[0] = 8;    //Relay number 0...15
+settings_line_17[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_17[2] = 8;    //falling edge on switch #...
+settings_line_17[3] = 0xFF; //rising  edge on switch #...
+settings_line_17[4] = 0xFF; //falling edge on relay #...
+settings_line_17[5] = 0xFF; //rising  edge on relay #...
+settings_line_17[6] = 0xFF; //double click on switch #...
+settings_line_17[7] = 0xFF;    //time, hours
+settings_line_17[8] = 0xFF;   //time, minutes
+settings_line_17[9] = 0xFF;
+settings_line_17[10] = 0xFF;
+settings_line_17[11] = 0xFF;
+settings_line_17[12] = 0xFF;
+settings_line_17[13] = 0xFF;
+settings_line_17[14] = 0xFF;
+settings_line_17[15] = 0xFF;
+
+settings_line_18[0] = 8;    //Relay number 0...15
+settings_line_18[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_18[2] = 0xFF; //falling edge on switch #...
+settings_line_18[3] = 8;    //rising  edge on switch #...
+settings_line_18[4] = 0xFF; //falling edge on relay #...
+settings_line_18[5] = 0xFF; //rising  edge on relay #...
+settings_line_18[6] = 0xFF; //double click on switch #...
+settings_line_18[7] = 0xFF;    //time, hours
+settings_line_18[8] = 0xFF;   //time, minutes
+settings_line_18[9] = 0xFF;
+settings_line_18[10] = 0xFF;
+settings_line_18[11] = 0xFF;
+settings_line_18[12] = 0xFF;
+settings_line_18[13] = 0xFF;
+settings_line_18[14] = 0xFF;
+settings_line_18[15] = 0xFF;
+
+settings_line_19[0] = 9;    //Relay number 0...15
+settings_line_19[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_19[2] = 9;    //falling edge on switch #...
+settings_line_19[3] = 0xFF; //rising  edge on switch #...
+settings_line_19[4] = 0xFF; //falling edge on relay #...
+settings_line_19[5] = 0xFF; //rising  edge on relay #...
+settings_line_19[6] = 0xFF; //double click on switch #...
+settings_line_19[7] = 0xFF;    //time, hours
+settings_line_19[8] = 0xFF;   //time, minutes
+settings_line_19[9] = 0xFF;
+settings_line_19[10] = 0xFF;
+settings_line_19[11] = 0xFF;
+settings_line_19[12] = 0xFF;
+settings_line_19[13] = 0xFF;
+settings_line_19[14] = 0xFF;
+settings_line_19[15] = 0xFF;
+
+settings_line_20[0] = 9;    //Relay number 0...15
+settings_line_20[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_20[2] = 0xFF; //falling edge on switch #...
+settings_line_20[3] = 9;    //rising  edge on switch #...
+settings_line_20[4] = 0xFF; //falling edge on relay #...
+settings_line_20[5] = 0xFF; //rising  edge on relay #...
+settings_line_20[6] = 0xFF; //double click on switch #...
+settings_line_20[7] = 0xFF;    //time, hours
+settings_line_20[8] = 0xFF;   //time, minutes
+settings_line_20[9] = 0xFF;
+settings_line_20[10] = 0xFF;
+settings_line_20[11] = 0xFF;
+settings_line_20[12] = 0xFF;
+settings_line_20[13] = 0xFF;
+settings_line_20[14] = 0xFF;
+settings_line_20[15] = 0xFF;
+
+settings_line_21[0] = 10;    //Relay number 0...15
+settings_line_21[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_21[2] = 10;    //falling edge on switch #...
+settings_line_21[3] = 0xFF; //rising  edge on switch #...
+settings_line_21[4] = 0xFF; //falling edge on relay #...
+settings_line_21[5] = 0xFF; //rising  edge on relay #...
+settings_line_21[6] = 0xFF; //double click on switch #...
+settings_line_21[7] = 0xFF; //time, hours
+settings_line_21[8] = 0xFF; //time, minutes
+settings_line_21[9] = 0xFF;
+settings_line_21[10] = 0xFF;
+settings_line_21[11] = 0xFF;
+settings_line_21[12] = 0xFF;
+settings_line_21[13] = 0xFF;
+settings_line_21[14] = 0xFF;
+settings_line_21[15] = 0xFF;
+
+settings_line_22[0] = 10;   //Relay number 0...15
+settings_line_22[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_22[2] = 0xFF; //falling edge on switch #...
+settings_line_22[3] = 10;    //rising  edge on switch #...
+settings_line_22[4] = 0xFF; //falling edge on relay #...
+settings_line_22[5] = 0xFF; //rising  edge on relay #...
+settings_line_22[6] = 0xFF; //double click on switch #...
+settings_line_22[7] = 0xFF; //time, hours
+settings_line_22[8] = 0xFF; //time, minutes
+settings_line_22[9] = 0xFF;
+settings_line_22[10] = 0xFF;
+settings_line_22[11] = 0xFF;
+settings_line_22[12] = 0xFF;
+settings_line_22[13] = 0xFF;
+settings_line_22[14] = 0xFF;
+settings_line_22[15] = 0xFF;
+
+settings_line_23[0] = 11;   //Relay number 0...15
+settings_line_23[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_23[2] = 11;    //falling edge on switch #...
+settings_line_23[3] = 0xFF; //rising  edge on switch #...
+settings_line_23[4] = 0xFF; //falling edge on relay #...
+settings_line_23[5] = 0xFF; //rising  edge on relay #...
+settings_line_23[6] = 0xFF; //double click on switch #...
+settings_line_23[7] = 0xFF; //time, hours
+settings_line_23[8] = 0xFF; //time, minutes
+settings_line_23[9] = 0xFF;
+settings_line_23[10] = 0xFF;
+settings_line_23[11] = 0xFF;
+settings_line_23[12] = 0xFF;
+settings_line_23[13] = 0xFF;
+settings_line_23[14] = 0xFF;
+settings_line_23[15] = 0xFF;
+
+settings_line_24[0] = 11;   //Relay number 0...15
+settings_line_24[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_24[2] = 0xFF; //falling edge on switch #...
+settings_line_24[3] = 11;    //rising  edge on switch #...
+settings_line_24[4] = 0xFF; //falling edge on relay #...
+settings_line_24[5] = 0xFF; //rising  edge on relay #...
+settings_line_24[6] = 0xFF; //double click on switch #...
+settings_line_24[7] = 0xFF; //time, hours
+settings_line_24[8] = 0xFF; //time, minutes
+settings_line_24[9] = 0xFF;
+settings_line_24[10] = 0xFF;
+settings_line_24[11] = 0xFF;
+settings_line_24[12] = 0xFF;
+settings_line_24[13] = 0xFF;
+settings_line_24[14] = 0xFF;
+settings_line_24[15] = 0xFF;
+
+settings_line_25[0] = 12;   //Relay number 0...15
+settings_line_25[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_25[2] = 12;    //falling edge on switch #...
+settings_line_25[3] = 0xFF; //rising  edge on switch #...
+settings_line_25[4] = 0xFF; //falling edge on relay #...
+settings_line_25[5] = 0xFF; //rising  edge on relay #...
+settings_line_25[6] = 0xFF; //double click on switch #...
+settings_line_25[7] = 0xFF; //time, hours
+settings_line_25[8] = 0xFF; //time, minutes
+settings_line_25[9] = 0xFF;
+settings_line_25[10] = 0xFF;
+settings_line_25[11] = 0xFF;
+settings_line_25[12] = 0xFF;
+settings_line_25[13] = 0xFF;
+settings_line_25[14] = 0xFF;
+settings_line_25[15] = 0xFF;
+
+settings_line_26[0] = 12;   //Relay number 0...15
+settings_line_26[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_26[2] = 0xFF; //falling edge on switch #...
+settings_line_26[3] = 12;    //rising  edge on switch #...
+settings_line_26[4] = 0xFF; //falling edge on relay #...
+settings_line_26[5] = 0xFF; //rising  edge on relay #...
+settings_line_26[6] = 0xFF; //double click on switch #...
+settings_line_26[7] = 0xFF; //time, hours
+settings_line_26[8] = 0xFF; //time, minutes
+settings_line_26[9] = 0xFF;
+settings_line_26[10] = 0xFF;
+settings_line_26[11] = 0xFF;
+settings_line_26[12] = 0xFF;
+settings_line_26[13] = 0xFF;
+settings_line_26[14] = 0xFF;
+settings_line_26[15] = 0xFF;
+
+settings_line_27[0] = 13;   //Relay number 0...15
+settings_line_27[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_27[2] = 13; //falling edge on switch #...
+settings_line_27[3] = 0xFF; //rising  edge on switch #...
+settings_line_27[4] = 0xFF; //falling edge on relay #...
+settings_line_27[5] = 0xFF   ; //rising  edge on relay #...
+settings_line_27[6] = 0xFF; //double click on switch #...
+settings_line_27[7] = 0xFF; //time, hours
+settings_line_27[8] = 0xFF; //time, minutes
+settings_line_27[9] = 0xFF;
+settings_line_27[10] = 0xFF;
+settings_line_27[11] = 0xFF;
+settings_line_27[12] = 0xFF;
+settings_line_27[13] = 0xFF;
+settings_line_27[14] = 0xFF;
+settings_line_27[15] = 0xFF;
+
+settings_line_28[0] = 13;   //Relay number 0...15
+settings_line_28[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_28[2] = 0xFF; //falling edge on switch #...
+settings_line_28[3] = 13; //rising  edge on switch #...
+settings_line_28[4] = 0xFF;    //falling edge on relay #...
+settings_line_28[5] = 0xFF; //rising  edge on relay #...
+settings_line_28[6] = 0xFF; //double click on switch #...
+settings_line_28[7] = 0xFF; //time, hours
+settings_line_28[8] = 0xFF; //time, minutes
+settings_line_28[9] = 0xFF;
+settings_line_28[10] = 0xFF;
+settings_line_28[11] = 0xFF;
+settings_line_28[12] = 0xFF;
+settings_line_28[13] = 0xFF;
+settings_line_28[14] = 0xFF;
+settings_line_28[15] = 0xFF;
+
+settings_line_29[0] = 14;   //Relay number 0...15
+settings_line_29[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_29[2] = 14; //falling edge on switch #...
+settings_line_29[3] = 0xFF; //rising  edge on switch #...
+settings_line_29[4] = 0xFF; //falling edge on relay #...
+settings_line_29[5] = 0xFF   ; //rising  edge on relay #...
+settings_line_29[6] = 0xFF; //double click on switch #...
+settings_line_29[7] = 0xFF; //time, hours
+settings_line_29[8] = 0xFF; //time, minutes
+settings_line_29[9] = 0xFF;
+settings_line_29[10] = 0xFF;
+settings_line_29[11] = 0xFF;
+settings_line_29[12] = 0xFF;
+settings_line_29[13] = 0xFF;
+settings_line_29[14] = 0xFF;
+settings_line_29[15] = 0xFF;
+
+settings_line_30[0] = 14;   //Relay number 0...15
+settings_line_30[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_30[2] = 0xFF; //falling edge on switch #...
+settings_line_30[3] = 14; //rising  edge on switch #...
+settings_line_30[4] = 0xFF;    //falling edge on relay #...
+settings_line_30[5] = 0xFF; //rising  edge on relay #...
+settings_line_30[6] = 0xFF; //double click on switch #...
+settings_line_30[7] = 0xFF; //time, hours
+settings_line_30[8] = 0xFF; //time, minutes
+settings_line_30[9] = 0xFF;
+settings_line_30[10] = 0xFF;
+settings_line_30[11] = 0xFF;
+settings_line_30[12] = 0xFF;
+settings_line_30[13] = 0xFF;
+settings_line_30[14] = 0xFF;
+settings_line_30[15] = 0xFF;
+
+settings_line_31[0] = 15;   //Relay number 0...15
+settings_line_31[1] = 0;    //Action 0-turn OFF; 1-turn ON
+settings_line_31[2] = 15; //falling edge on switch #...
+settings_line_31[3] = 0; //rising  edge on switch #...
+settings_line_31[4] = 0xFF; //falling edge on relay #...
+settings_line_31[5] = 0; //rising  edge on relay #...
+settings_line_31[6] = 0xFF; //double click on switch #...
+settings_line_31[7] = 0xFF; //time, hours
+settings_line_31[8] = 0xFF; //time, minutes
+settings_line_31[9] = 0xFF;
+settings_line_31[10] = 0xFF;
+settings_line_31[11] = 0xFF;
+settings_line_31[12] = 0xFF;
+settings_line_31[13] = 0xFF;
+settings_line_31[14] = 0xFF;
+settings_line_31[15] = 0xFF;
+
+settings_line_32[0] = 15;   //Relay number 0...15
+settings_line_32[1] = 1;    //Action 0-turn OFF; 1-turn ON
+settings_line_32[2] = 0xFF; //falling edge on switch #...
+settings_line_32[3] = 15; //rising  edge on switch #...
+settings_line_32[4] = 0;    //falling edge on relay #...
+settings_line_32[5] = 0xFF; //rising  edge on relay #...
+settings_line_32[6] = 0xFF; //double click on switch #...
+settings_line_32[7] = 0xFF; //time, hours
+settings_line_32[8] = 0xFF; //time, minutes
+settings_line_32[9] = 0xFF;
+settings_line_32[10] = 0xFF;
+settings_line_32[11] = 0xFF;
+settings_line_32[12] = 0xFF;
+settings_line_32[13] = 0xFF;
+settings_line_32[14] = 0xFF;
+settings_line_32[15] = 0xFF;
+
+sec_error_counter = sec_error_counter_value;
+
+// Global enable interrupts
+#asm("sei")
+
+}

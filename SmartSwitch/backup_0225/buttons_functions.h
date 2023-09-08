@@ -1,0 +1,166 @@
+void buttons_functions()
+{
+        if(Buttons !=0)
+        {
+        if(Keyboard_inactive==0)
+        {
+            sec_error_counter = sec_error_counter_value;
+        
+        
+            Back_to_main_menu_counter = Back_to_main_menu_value;
+            
+            if(Buttons_debouncing_counter < Buttons_debouncing_value)
+            {
+                Buttons_debouncing_counter++;
+            }
+            else
+            {
+                
+            
+                if(Buttons==16)
+                {
+                    Keyboard_inactive = Keyboard_inactive_value;
+                    if(menu < max_menu_value)
+                    {
+                        menu++;
+                        //Keyboard_inactive = Keyboard_inactive_value;
+                    }
+                    else
+                    {
+                        menu=0;
+                        //Keyboard_inactive = Keyboard_inactive_value;
+                    };
+                };
+                
+                if(menu==0)
+                {
+                    if(Buttons == 1)
+                    {
+                        if(eeprom_read_byte(2)!=0)
+                        {
+                            Keyboard_inactive = Keyboard_inactive_value;
+                            switching_relay_off_prohibited = 1; // Switching relay OFF only by switch, not by another relay
+                            if(eeprom_read_byte(2)<=5)
+                            {
+                                switching_relay_off_prohibited_counter = 12000 * eeprom_read_byte(2);
+                            }
+                            else
+                            {
+                                eeprom_write_byte(2, 5)
+                                switching_relay_off_prohibited_counter = 60000;
+                            };                                
+                        };
+                    };
+                    if(Buttons == 2)
+                    {
+                        Keyboard_inactive = Keyboard_inactive_value;
+                        switching_relay_off_prohibited = 0; // Switching relay OFF only by switch, not by another relay
+                        switching_relay_off_prohibited_counter = 0;
+                    }; 
+                    if(Buttons == 4)
+                    {
+                        Keyboard_inactive = Keyboard_inactive_value;
+                        OFF_timer=0;
+
+                    }; 
+                    if(Buttons == 8)
+                    {
+                        Keyboard_inactive = Keyboard_inactive_value;
+                        if(eeprom_read_byte(3)!=0)
+                        {
+                            Keyboard_inactive = Keyboard_inactive_value;
+                            if(eeprom_read_byte(3)!=0xFF)
+                            {
+                                if(eeprom_read_byte(3)<=5)
+                                {
+                                    OFF_timer = 12000 * eeprom_read_byte(3);
+                                }
+                                else
+                                {
+                                    eeprom_write_byte(3, 5)
+                                    OFF_timer = 60000;
+                                };
+                            };                                                                
+                        }
+                        else
+                        {
+                            //Turn relays off immideately
+                            relays_16_oldstate = 0;
+                            relays_16 = 0;
+                        };                        
+
+                    };                                                                                     
+               
+                };                
+                
+                if(menu==4)
+                {
+                    switch (Buttons) 
+                    {
+                        case 1: hour = hour+10;
+                                if(hour>23)
+                                {
+                                    hour=0;
+                                };
+                                Keyboard_inactive = Keyboard_inactive_value;
+                        break;
+                        case 2: hour++;
+                                if(hour>23)
+                                {
+                                    hour=0;
+                                };
+                                Keyboard_inactive = Keyboard_inactive_value;                        
+                        break;
+                        case 4: minute = minute+10;
+                                if(minute>59)
+                                {
+                                    minute=0;
+                                };
+                                Keyboard_inactive = Keyboard_inactive_value;                        
+                        break;
+                        case 8: minute++;
+                                if(minute>59)
+                                {
+                                    minute=0;
+                                };
+                                Keyboard_inactive = Keyboard_inactive_value;                        
+                        break; 
+                       
+                                                            
+                    };
+                    
+                i2c_start();
+                i2c_write(0xd0);
+                i2c_write(0);
+                i2c_write(bin2bcd(sec));
+                i2c_write(bin2bcd(minute));
+                i2c_write(bin2bcd(hour));
+                                                    
+                i2c_stop();                      
+
+                };
+                
+                if(menu==5 && Buttons == 12)
+                {
+                    Keyboard_inactive = Keyboard_inactive_value;
+                    sec=0;
+                    i2c_start();
+                    i2c_write(0xd0);
+                    i2c_write(0);
+                    i2c_write(bin2bcd(sec));
+                    i2c_write(bin2bcd(minute));
+                    i2c_write(bin2bcd(hour));
+                    i2c_stop();                
+                };                             
+            };
+            
+        };                   
+        }
+        else
+        {
+            if(Buttons_debouncing_counter >0)
+            {
+                Buttons_debouncing_counter--;
+            };
+        };
+}
