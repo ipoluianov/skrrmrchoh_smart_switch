@@ -71,6 +71,11 @@
             this.btnSaveAs = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
+            this.lvSettings = new System.Windows.Forms.ListView();
+            this.columnHeader18 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader19 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader20 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader21 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.grLine.SuspendLayout();
             this.panelToolbox.SuspendLayout();
             this.SuspendLayout();
@@ -100,9 +105,9 @@
             this.columnHeader17});
             this.lvEEPROM.FullRowSelect = true;
             this.lvEEPROM.HideSelection = false;
-            this.lvEEPROM.Location = new System.Drawing.Point(3, 41);
+            this.lvEEPROM.Location = new System.Drawing.Point(3, 107);
             this.lvEEPROM.Name = "lvEEPROM";
-            this.lvEEPROM.Size = new System.Drawing.Size(968, 400);
+            this.lvEEPROM.Size = new System.Drawing.Size(1134, 334);
             this.lvEEPROM.TabIndex = 0;
             this.lvEEPROM.UseCompatibleStateImageBehavior = false;
             this.lvEEPROM.View = System.Windows.Forms.View.Details;
@@ -215,9 +220,9 @@
             this.grLine.Controls.Add(this.label3);
             this.grLine.Controls.Add(this.label2);
             this.grLine.Controls.Add(this.label1);
-            this.grLine.Location = new System.Drawing.Point(977, 41);
+            this.grLine.Location = new System.Drawing.Point(1143, 41);
             this.grLine.Name = "grLine";
-            this.grLine.Size = new System.Drawing.Size(433, 400);
+            this.grLine.Size = new System.Drawing.Size(258, 400);
             this.grLine.TabIndex = 1;
             this.grLine.TabStop = false;
             this.grLine.Text = "Line";
@@ -401,13 +406,13 @@
             this.panelToolbox.Controls.Add(this.btnLoad);
             this.panelToolbox.Location = new System.Drawing.Point(3, 3);
             this.panelToolbox.Name = "panelToolbox";
-            this.panelToolbox.Size = new System.Drawing.Size(1407, 32);
+            this.panelToolbox.Size = new System.Drawing.Size(1398, 32);
             this.panelToolbox.TabIndex = 2;
             // 
             // btnSaveToDevice
             // 
             this.btnSaveToDevice.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveToDevice.Location = new System.Drawing.Point(1248, 3);
+            this.btnSaveToDevice.Location = new System.Drawing.Point(1239, 3);
             this.btnSaveToDevice.Name = "btnSaveToDevice";
             this.btnSaveToDevice.Size = new System.Drawing.Size(156, 23);
             this.btnSaveToDevice.TabIndex = 4;
@@ -418,7 +423,7 @@
             // btnLoadFromDevice
             // 
             this.btnLoadFromDevice.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoadFromDevice.Location = new System.Drawing.Point(1114, 3);
+            this.btnLoadFromDevice.Location = new System.Drawing.Point(1105, 3);
             this.btnLoadFromDevice.Name = "btnLoadFromDevice";
             this.btnLoadFromDevice.Size = new System.Drawing.Size(128, 23);
             this.btnLoadFromDevice.TabIndex = 3;
@@ -456,15 +461,54 @@
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
             // 
+            // lvSettings
+            // 
+            this.lvSettings.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lvSettings.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader18,
+            this.columnHeader19,
+            this.columnHeader20,
+            this.columnHeader21});
+            this.lvSettings.FullRowSelect = true;
+            this.lvSettings.HideSelection = false;
+            this.lvSettings.Location = new System.Drawing.Point(3, 41);
+            this.lvSettings.Name = "lvSettings";
+            this.lvSettings.Size = new System.Drawing.Size(1134, 60);
+            this.lvSettings.TabIndex = 3;
+            this.lvSettings.UseCompatibleStateImageBehavior = false;
+            this.lvSettings.View = System.Windows.Forms.View.Details;
+            // 
+            // columnHeader18
+            // 
+            this.columnHeader18.Text = "Lines Count";
+            this.columnHeader18.Width = 150;
+            // 
+            // columnHeader19
+            // 
+            this.columnHeader19.Text = "Switches Inversion";
+            this.columnHeader19.Width = 150;
+            // 
+            // columnHeader20
+            // 
+            this.columnHeader20.Text = "Turning OFF Block Timer";
+            this.columnHeader20.Width = 150;
+            // 
+            // columnHeader21
+            // 
+            this.columnHeader21.Text = "Auto OFF Timer";
+            this.columnHeader21.Width = 150;
+            // 
             // ControlEEPROM
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.lvSettings);
             this.Controls.Add(this.panelToolbox);
             this.Controls.Add(this.grLine);
             this.Controls.Add(this.lvEEPROM);
             this.Name = "ControlEEPROM";
-            this.Size = new System.Drawing.Size(1413, 444);
+            this.Size = new System.Drawing.Size(1404, 444);
             this.grLine.ResumeLayout(false);
             this.grLine.PerformLayout();
             this.panelToolbox.ResumeLayout(false);
@@ -517,5 +561,10 @@
         private System.Windows.Forms.ComboBox cmbRelayRisingEdge;
         private System.Windows.Forms.ComboBox cmbRelayFallingEdge;
         private System.Windows.Forms.ComboBox cmbSwitchRisingEdge;
+        private System.Windows.Forms.ListView lvSettings;
+        private System.Windows.Forms.ColumnHeader columnHeader18;
+        private System.Windows.Forms.ColumnHeader columnHeader19;
+        private System.Windows.Forms.ColumnHeader columnHeader20;
+        private System.Windows.Forms.ColumnHeader columnHeader21;
     }
 }

@@ -585,7 +585,7 @@ void rs485_write_eeprom(unsigned char line_index, unsigned char * data)
     char i;
     for (i = 0; i < 16; i++)
     {
-        // eeprom_write_byte(line_index * 16 + i, data[i]);
+        eeprom_write_byte(line_index * 16 + i, data[i]);
     }
     
     for (i = 5; i < FRAME_SIZE - 1; i++)

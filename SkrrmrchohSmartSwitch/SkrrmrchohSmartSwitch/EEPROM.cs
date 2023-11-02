@@ -15,7 +15,7 @@ namespace SkrrmrchohSmartSwitch
         List<byte> content = new List<byte>();
         List<byte> originalContent = new List<byte>();
 
-        public const int CountOfRows = 32;
+        public const int CountOfRows = 63;
         public const int EEPROMSize = 16 + (CountOfRows * 16);
 
         public EEPROM()
@@ -24,6 +24,21 @@ namespace SkrrmrchohSmartSwitch
             for (int i = 0; i < EEPROMSize; i++)
                 content.Add(0xFF);
         }
+
+        public List<byte> SettingsRow()
+        {
+            List<byte> result = new List<byte>();
+            for (int i = 0; i < 16; i++)
+            {
+                int offset = i;
+                if (offset >= content.Count)
+                    result.Add(0xFF);
+                else
+                    result.Add(content[offset]);
+            }
+            return result;
+        }
+
 
         public List<byte> Row(int lineIndex)
         {
@@ -48,6 +63,17 @@ namespace SkrrmrchohSmartSwitch
                     content.Add(0xFF);
 
             content[16 + lineIndex * 16 + byteIndex] = b;
+        }
+
+        public void SetSettings(int byteIndex, byte b)
+        {
+            int offset = byteIndex;
+
+            if (offset >= content.Count)
+                while (content.Count < offset + 1)
+                    content.Add(0xFF);
+
+            content[byteIndex] = b;
         }
 
         public void SaveToFile(string fileName)

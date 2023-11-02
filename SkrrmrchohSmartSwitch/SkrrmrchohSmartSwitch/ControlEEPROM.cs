@@ -72,15 +72,37 @@ namespace SkrrmrchohSmartSwitch
 
         private void btnLoadFromDevice_Click(object sender, EventArgs e)
         {
+            var response = Client.Instance.Call(6, 1, 2, 0, 0, new byte[0]);
+            if (response.result == 0 && response.data.Length == 19)
+            {
+                for (int bIndex = 0; bIndex < 16; bIndex++)
+                    eeprom.SetSettings(bIndex, response.data[bIndex]);
+            }
 
+            for (int i = 0; i < EEPROM.CountOfRows; i++)
+            {
+                List<byte> data = new List<byte>();
+                response = Client.Instance.Call(6, 1, 2, Convert.ToByte(i + 1), 0, data.ToArray());
+                if (response.result == 0 && response.data.Length == 19)
+                {
+                    for (int bIndex = 0; bIndex < 16; bIndex++)
+                        eeprom.Set(i, bIndex, response.data[bIndex]);
+                }
+            }
+            loadTable();
         }
 
         private void btnSaveToDevice_Click(object sender, EventArgs e)
         {
-
+            for (int i = 0; i < EEPROM.CountOfRows; i++)
+            {
+                var row = eeprom.Row(i);
+                List<byte> data = new List<byte>();
+                Client.Instance.Call(6, 1, 1, Convert.ToByte(i + 1), 0, row.ToArray());
+            }
         }
 
-        void loadTable()
+        public void loadTable()
         {
             loadingTable = true;
             int lastSelectedItem = -1;
@@ -112,6 +134,17 @@ namespace SkrrmrchohSmartSwitch
             if (lastSelectedItem > -1)
             {
                 lvEEPROM.Items[lastSelectedItem].Selected = true;
+            }
+
+            {
+                lvSettings.Items.Clear();
+                // Loading Settings Line
+                List<byte> row = eeprom.SettingsRow();
+                var lvItem = lvSettings.Items.Add(row[0].ToString("X2"));
+
+                lvItem.SubItems.Add(row[1].ToString("X2"));
+                lvItem.SubItems.Add(row[2].ToString("X2"));
+                lvItem.SubItems.Add(row[3].ToString("X2"));
             }
 
             loadingTable = false;

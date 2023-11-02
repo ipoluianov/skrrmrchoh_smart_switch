@@ -16,13 +16,6 @@ namespace SkrrmrchohSmartSwitch
         }
 
         public static Client Instance = new Client();
-        private Dictionary<uint, Transaction> transactions = new Dictionary<uint, Transaction>();
-
-        public class Transaction
-        {
-            public Request Request;
-            public Response Response;
-        }
 
         public class Request
         {
@@ -49,18 +42,20 @@ namespace SkrrmrchohSmartSwitch
             }
         }
 
-        public class Response
+        public class Frame
         {
-            public uint Transaction;
-            public uint UnitType;
-            public uint UnitId;
-            public uint Function;
-            public uint ResultCode;
-            public byte[] Data;
+            public byte direction = 0;
+            public byte destAddr = 0;
+            public byte srcAddr = 0;
+            public byte function = 0;
+            public byte subAddr1 = 0;
+            public byte subAddr2 = 0;
+            public byte[] data = new byte[0];
+
+            public byte result = 0;
         }
 
-        //public event Action<uint, uint, uint, byte[]> OnReceive;
-        public Queue<Response> Results = new Queue<Response>();
+        public Queue<Frame> Results = new Queue<Frame>();
 
         public Client(byte addr)
         {
@@ -70,7 +65,6 @@ namespace SkrrmrchohSmartSwitch
         private string serialPortName = "";
         private SerialPort serialPort;
 
-        private Thread thReceive = null;
         public void Connect(string portName)
         {
             serialPortName = portName;
@@ -79,49 +73,14 @@ namespace SkrrmrchohSmartSwitch
 
         public void Disconnect()
         {
-            transactions.Clear();
+            if (serialPort != null)
+            {
+                serialPort.Close();
+                serialPort = null;
+            }
         }
 
         private List<byte> input = new List<byte>();
-
-
-        private void CheckFrame()
-        {
-            while (input.Count >= 32)
-            {
-                byte[] inputBytes = input.ToArray();
-
-                int size = BitConverter.ToInt32(inputBytes, 0);
-                if (size > 10000 || size < 32)
-                {
-                    break;
-                }
-                if (inputBytes.Length >= size)
-                {
-                    Response response = new Response();
-                    response.Transaction = BitConverter.ToUInt32(inputBytes, 4);
-                    response.UnitType = BitConverter.ToUInt32(inputBytes, 8);
-                    response.UnitId = BitConverter.ToUInt32(inputBytes, 12);
-                    response.Function = BitConverter.ToUInt32(inputBytes, 16);
-                    response.ResultCode = BitConverter.ToUInt32(inputBytes, 20);
-                    response.Data = new byte[size - 32];
-                    for (int i = 0; i < size - 32; i++)
-                        response.Data[i] = inputBytes[i + 32];
-
-                    /*frames.Add(new RS485Test.Client.Fr(inputBytes, size));
-                    framesParsed.Add(response);
-                    lastValidOffset += size;*/
-
-                    input.RemoveRange(0, size);
-                    lock (Results)
-                    {
-                        Results.Enqueue(response);
-                    }
-                }
-                else
-                    break;
-            }
-        }
 
         public static string IP = "192.168.254.12";
         public static bool Enabled = false;
@@ -154,67 +113,87 @@ namespace SkrrmrchohSmartSwitch
             return crc;
         }
 
-        public void Call(uint unitType, uint unitId, uint function, byte[] data)
+        public Frame Call(byte destAddr, byte srcAddr, byte function, byte subAddr1, byte subAddr2, byte[] data)
         {
             if (serialPort != null)
             {
                 List<byte> dataFrame = new List<byte>();
-                for (int i = 1; i < data.Length; i++)
-                    dataFrame.Add(data[i]);
+                dataFrame.Add(destAddr);
+                dataFrame.Add(srcAddr);
+                dataFrame.Add(function);
+                dataFrame.Add(subAddr1);
+                dataFrame.Add(subAddr2);
+                dataFrame.AddRange(data);
 
-                List<byte> frame = new List<byte>();
-                frame.Add(data[0]);
-                frame.Add(0x00);
-                frame.Add(Convert.ToByte(data.Length - 1));
-                frame.AddRange(dataFrame);
-                frame.Add(calcCRC(frame.ToArray()));
-                var frameToSend = frame.ToArray();
+                while (dataFrame.Count < 24)
+                    dataFrame.Add(0x00);
+
+                var frameToSend = dataFrame.ToArray();
+
+                Frame request = new Frame();
+                request.direction = 0;
+                request.destAddr = frameToSend[0];
+                request.srcAddr = frameToSend[1];
+                request.function = frameToSend[2];
+                request.subAddr1 = frameToSend[3];
+                request.subAddr2 = frameToSend[4];
+                request.result = 0;
+                List<byte> req = new List<byte>();
+                for (int i = 5; i < 24; i++)
+                    req.Add(frameToSend[i]);
+                request.data = req.ToArray();
+                lock (Results)
+                {
+                    Results.Enqueue(request);
+                }
+
                 serialPort.Write(frameToSend, 0, frameToSend.Length);
-                serialPort.ReadTimeout = 500;
+                serialPort.ReadTimeout = 100;
                 List<byte> response = new List<byte>();
-                for (int i = 0; i < 7; i++)
-                    response.Add(0);
+                bool error = false;
                 try
                 {
                     while (true)
                     {
                         int b = serialPort.ReadByte();
-                        //input.Add(Convert.ToByte(b));
-
                         response.Add(Convert.ToByte(b));
                     }
                 }
                 catch (Exception ex)
                 {
+                    error = true;
                 }
 
-                Response response1 = new Response();
-                response1.Transaction = 0;
-                response1.UnitType = 0x01;
-                response1.UnitId = 0;
-                response1.Function = 0;
-                response1.ResultCode = response.Count > 7 ? 0 : Convert.ToUInt32(0x81 << 16);
-                response1.Data = response.ToArray();
+                Frame response1 = new Frame();
+                response1.direction = 1;
+                if (error)
+                    response1.result = 1;
+                if (response.Count >= 5)
+                {
+                    response1.destAddr = response[0];
+                    response1.srcAddr = response[1];
+                    response1.function = response[2];
+                    response1.subAddr1 = response[3];
+                    response1.subAddr2 = response[4];
+                    response1.result = 0;
+                    List<byte> d = new List<byte>();
+                    for (int i = 5; i < response.Count; i++)
+                        d.Add(response[i]);
+                    response1.data = d.ToArray();
 
+                }
                 lock (Results)
                 {
                     Results.Enqueue(response1);
                 }
 
-                return;
+                return response1;
             }
 
+            return new Frame();
         }
 
         public List<byte> receivedBytes = new List<byte>();
-
-        public void Rs485Request(byte addr, byte[] data)
-        {
-            List<byte> buffer = new List<byte>();
-            buffer.Add(addr);
-            buffer.AddRange(data);
-            Call(0x01, 0, 0x01, buffer.ToArray());
-        }
 
         public bool Connected()
         {

@@ -15,5 +15,10 @@ namespace SkrrmrchohSmartSwitch
         {
             InitializeComponent();
         }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            controlEEPROM.loadTable();
+        }
     }
 }
