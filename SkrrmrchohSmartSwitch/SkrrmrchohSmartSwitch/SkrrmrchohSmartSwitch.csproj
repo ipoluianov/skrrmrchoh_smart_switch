@@ -63,6 +63,12 @@
     <Compile Include="ControlLink.Designer.cs">
       <DependentUpon>ControlLink.cs</DependentUpon>
     </Compile>
+    <Compile Include="EditLineDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditLineDialog.Designer.cs">
+      <DependentUpon>EditLineDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="EEPROM.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -81,6 +87,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ControlLink.resx">
       <DependentUpon>ControlLink.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EditLineDialog.resx">
+      <DependentUpon>EditLineDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

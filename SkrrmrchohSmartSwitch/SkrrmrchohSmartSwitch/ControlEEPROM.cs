@@ -320,5 +320,17 @@ namespace SkrrmrchohSmartSwitch
             eeprom.Set(rowIndex, 6, value);
             loadTable();
         }
+
+        private void lvEEPROM_DoubleClick(object sender, EventArgs e)
+        {
+            if (lvEEPROM.SelectedItems.Count != 1)
+            {
+                return;
+            }
+            int rowIndex = lvEEPROM.SelectedItems[0].Index;
+            var row = eeprom.Row(rowIndex);
+            var dialog = new EditLineDialog(row);
+            dialog.ShowDialog(this);
+        }
     }
 }

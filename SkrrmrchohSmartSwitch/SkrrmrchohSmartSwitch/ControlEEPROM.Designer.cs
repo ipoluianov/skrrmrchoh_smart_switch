@@ -112,6 +112,7 @@
             this.lvEEPROM.UseCompatibleStateImageBehavior = false;
             this.lvEEPROM.View = System.Windows.Forms.View.Details;
             this.lvEEPROM.SelectedIndexChanged += new System.EventHandler(this.lvEEPROM_SelectedIndexChanged);
+            this.lvEEPROM.DoubleClick += new System.EventHandler(this.lvEEPROM_DoubleClick);
             // 
             // columnHeader1
             // 
