@@ -33,10 +33,13 @@
             this.controlEEPROM = new SkrrmrchohSmartSwitch.ControlEEPROM();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.controlControl = new SkrrmrchohSmartSwitch.ControlControl();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.relayView1 = new SkrrmrchohSmartSwitch.RelayView();
             this.controlLink = new SkrrmrchohSmartSwitch.ControlLink();
             this.tabControlMain.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControlMain
@@ -46,6 +49,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControlMain.Controls.Add(this.tabPage2);
             this.tabControlMain.Controls.Add(this.tabPage1);
+            this.tabControlMain.Controls.Add(this.tabPage3);
             this.tabControlMain.Location = new System.Drawing.Point(528, 12);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
@@ -94,6 +98,28 @@
             this.controlControl.Size = new System.Drawing.Size(495, 729);
             this.controlControl.TabIndex = 0;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.relayView1);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(507, 741);
+            this.tabPage3.TabIndex = 3;
+            this.tabPage3.Text = "Relay View";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // relayView1
+            // 
+            this.relayView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.relayView1.AutoScroll = true;
+            this.relayView1.Location = new System.Drawing.Point(6, 6);
+            this.relayView1.Name = "relayView1";
+            this.relayView1.Size = new System.Drawing.Size(495, 729);
+            this.relayView1.TabIndex = 0;
+            // 
             // controlLink
             // 
             this.controlLink.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -116,6 +142,7 @@
             this.tabControlMain.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -128,6 +155,8 @@
         private ControlLink controlLink;
         private ControlEEPROM controlEEPROM;
         private ControlControl controlControl;
+        private System.Windows.Forms.TabPage tabPage3;
+        private RelayView relayView1;
     }
 }
 
