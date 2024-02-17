@@ -16,15 +16,24 @@ class CellEditorSelect extends CellEditor {
 
 class CellEditorSelectItem {
   LogicalKeyboardKey? shortcut;
+  String value;
   String displayName;
-  CellEditorSelectItem(this.displayName, this.shortcut);
+  CellEditorSelectItem(this.value, this.displayName, this.shortcut);
 }
 
 class CellEditorSelectState extends State<CellEditorSelect> {
+  int currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
 
+    for (int i = 0; i < widget.items.length; i++) {
+      if (widget.items[i].value == widget.cell.content) {
+        currentIndex = i;
+        break;
+      }
+    }
     widget.cell.onKeyDownEvent = (event) {
       Set<LogicalKeyboardKey> activeKeys = {};
       for (int i = 0; i < widget.items.length; i++) {
@@ -33,12 +42,26 @@ class CellEditorSelectState extends State<CellEditorSelect> {
         }
       }
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-        setState(() {
-          rrr = "123";
-        });
+        selectItem(currentIndex);
         return true;
       }
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        setState(() {
+          if (currentIndex < widget.items.length - 1) {
+            currentIndex++;
+            scrollToItemY(currentIndex);
+          }
+        });
+      }
 
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        setState(() {
+          if (currentIndex > 0) {
+            currentIndex--;
+            scrollToItemY(currentIndex);
+          }
+        });
+      }
       if (activeKeys.contains(event.logicalKey)) {
         for (int i = 0; i < widget.items.length; i++) {
           if (widget.items[i].shortcut == event.logicalKey) {
@@ -52,7 +75,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
   }
 
   void selectItem(int index) {
-    widget.cell.content = widget.items[index].displayName;
+    widget.cell.content = widget.items[index].value;
     widget.cell.closeEditor();
   }
 
@@ -63,22 +86,116 @@ class CellEditorSelectState extends State<CellEditorSelect> {
     super.dispose();
   }
 
-  Widget buildItem(CellEditorSelectItem item) {
-    return Text(item.displayName);
+  Widget buildItem(CellEditorSelectItem item, int index) {
+    Color col = Colors.transparent;
+    if (index == currentIndex) {
+      col = Colors.white38;
+    }
+    return SizedBox(
+      height: rowHeight,
+      child: Listener(
+        onPointerDown: (event) {
+          setState(() {
+            currentIndex = index;
+            scrollToItemY(currentIndex);
+          });
+        },
+        child: GestureDetector(
+          onDoubleTap: () {
+            selectItem(index);
+            scrollToItemY(currentIndex);
+          },
+          child: Container(
+            color: col,
+            padding: const EdgeInsets.all(6),
+            child: Text(item.displayName),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildList() {
     List<Widget> wItems = [];
     for (int i = 0; i < widget.items.length; i++) {
-      wItems.add(buildItem(widget.items[i]));
+      wItems.add(buildItem(widget.items[i], i));
     }
-    return Column(
-      children: wItems,
+    return Expanded(
+      child: ListView(
+        controller: vController,
+        //crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: wItems,
+      ),
     );
+  }
+
+  ScrollController vController = ScrollController();
+
+  double rowHeight = 40;
+
+  void scrollToItemY(int itemIndex) {
+    final double itemPosition = itemIndex * rowHeight;
+    final double scrollPosition = vController.position.pixels;
+    final double viewportHeight = vController.position.viewportDimension;
+
+    if (itemPosition < scrollPosition) {
+      vController.jumpTo(itemPosition);
+      print("scroll to $itemPosition");
+    } else if ((itemPosition + rowHeight) > (scrollPosition + viewportHeight)) {
+      vController.jumpTo(itemPosition + rowHeight - viewportHeight);
+      print("scroll to $itemPosition");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return buildList();
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.black,
+          border: Border.all(
+            color: Colors.blue,
+            width: 1,
+          )),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          buildList(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: OutlinedButton(
+                  onPressed: () {
+                    selectItem(currentIndex);
+                  },
+                  child: SizedBox(
+                    width: 70,
+                    child: Center(
+                      child: const Text("OK"),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: OutlinedButton(
+                  onPressed: () {
+                    widget.cell.closeEditor();
+                  },
+                  child: SizedBox(
+                    width: 70,
+                    child: Center(
+                      child: const Text("Cancel"),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

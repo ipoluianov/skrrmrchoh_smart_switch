@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sss/context/cell_editor_select.dart';
 
 import 'cell.dart';
 import 'doc.dart';
@@ -34,6 +35,19 @@ class Context {
           }
           if (x == 3) {
             cell.cellEditorType = Cell.cellEditorTypeSelect;
+            cell.options = [
+              CellEditorSelectItem("1", "--- 111 ---", null),
+              CellEditorSelectItem("2", "Реле номер пять", null),
+              CellEditorSelectItem("3", "Входная дверь1", null),
+              CellEditorSelectItem("4", "Входная дверь2", null),
+              CellEditorSelectItem("5", "Входная дверь3", null),
+              CellEditorSelectItem("6", "Входная дверь4", null),
+              CellEditorSelectItem("7", "Входная дверь5", null),
+              CellEditorSelectItem("8", "Входная дверь6", null),
+              CellEditorSelectItem("9", "Входная дверь7", null),
+              CellEditorSelectItem("10", "Входная дверь8", null),
+              CellEditorSelectItem("11", "Входная дверь9", null),
+            ];
           }
         }
       }

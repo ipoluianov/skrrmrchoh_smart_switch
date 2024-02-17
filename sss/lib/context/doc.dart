@@ -281,18 +281,33 @@ class Doc {
               }
             }
           } else {
-            widget = GestureDetector(
-              onTap: () {},
-              onTapDown: (details) {
-                setCurrentCell(x, y);
-                editing_ = false;
+            widget = MouseRegion(
+              onEnter: (event) {
+                cell.hover = true;
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  border: border,
+              onExit: (event) {
+                cell.hover = true;
+              },
+              child: Listener(
+                onPointerDown: (event) {
+                  setCurrentCell(x, y);
+                  editing_ = false;
+                },
+                child: GestureDetector(
+                  onTap: () {},
+                  onTapDown: (details) {},
+                  onDoubleTap: () {
+                    setCurrentCell(x, y);
+                    editing_ = true;
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      border: border,
+                    ),
+                    child: cell.buildViewer(),
+                  ),
                 ),
-                child: cell.buildViewer(),
               ),
             );
           }
@@ -374,12 +389,18 @@ class Doc {
       if (cell != null) {
         editorDialog = Center(
           child: Container(
-            width: viewportWidth / 2,
-            height: viewPortHeight / 2,
-            color: Colors.cyan,
-            child: cell.buildEditor(() {
-              editing_ = false;
-            }),
+            child: Container(
+              width: viewportWidth / 2,
+              height: viewPortHeight / 2,
+              constraints: BoxConstraints(
+                maxWidth: viewportWidth / 2,
+                maxHeight: viewPortHeight / 2,
+              ),
+              color: Colors.black38,
+              child: cell.buildEditor(() {
+                editing_ = false;
+              }),
+            ),
           ),
         );
       }

@@ -10,6 +10,10 @@ class Cell {
   int y = 0;
   String content = "";
 
+  bool hover = false;
+
+  List<CellEditorSelectItem> options = [];
+
   CellBorder borderLeft = CellBorder();
   CellBorder borderRight = CellBorder();
   CellBorder borderTop = CellBorder();
@@ -38,11 +42,7 @@ class Cell {
       case cellEditorTypeSelect:
         result = CellEditorSelect(
           this,
-          [
-            CellEditorSelectItem("111", LogicalKeyboardKey.keyA),
-            CellEditorSelectItem("222", LogicalKeyboardKey.keyB),
-            CellEditorSelectItem("333", LogicalKeyboardKey.keyC),
-          ],
+          options,
         );
         break;
     }
