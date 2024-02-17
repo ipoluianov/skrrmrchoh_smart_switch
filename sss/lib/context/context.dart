@@ -10,25 +10,31 @@ class Context {
   Context() {
     {
       var doc = addDoc();
-      doc.addColumn("Index", 50);
-      doc.addColumn("Relay Number", 100);
-      doc.addColumn("Action", 200);
-      doc.addColumn("Switch Falling Edge", 100);
-      doc.addColumn("Switch Rising Edge", 100);
-      doc.addColumn("Relay Falling Edge", 100);
-      doc.addColumn("Relay Rising Edge", 100);
-      doc.addColumn("Switch Double Click", 100);
-      doc.addColumn("Time Hours", 100);
-      doc.addColumn("Time Minutes", 100);
-      doc.addColumn("Time Value", 100);
+      doc.addColumn("Index", 60);
+      doc.addColumn("Relay Number", 60);
+      doc.addColumn("Action", 60);
+      doc.addColumn("Switch Falling Edge", 60);
+      doc.addColumn("Switch Rising Edge", 60);
+      doc.addColumn("Relay Falling Edge", 60);
+      doc.addColumn("Relay Rising Edge", 60);
+      doc.addColumn("Switch Double Click", 60);
+      doc.addColumn("Time Hours", 60);
+      doc.addColumn("Time Minutes", 60);
+      doc.addColumn("Time Value", 60);
 
       doc.displayName = "EEPROM";
       for (int y = 0; y < 64; y++) {
-        doc.cells.add(Cell(0, y, "$y"));
+        doc.setCell(0, y, "$y");
       }
       for (int y = 0; y < 64; y++) {
         for (int x = 1; x < 11; x++) {
-          doc.cells.add(Cell(x, y, "FF"));
+          var cell = doc.setCell(x, y, "FF");
+          if (x == 2) {
+            cell.cellEditorType = Cell.cellEditorTypeText;
+          }
+          if (x == 3) {
+            cell.cellEditorType = Cell.cellEditorTypeSelect;
+          }
         }
       }
     }
@@ -37,7 +43,7 @@ class Context {
       doc.displayName = "Relay View";
       for (int y = 0; y < 5; y++) {
         for (int x = 0; x < 5; x++) {
-          doc.cells.add(Cell(x, y, "item $x $y"));
+          doc.setCell(x, y, "111");
         }
       }
     }
@@ -47,10 +53,23 @@ class Context {
     Doc doc = Doc();
     docs.add(doc);
     doc.onUpdate = notifyChanges;
+    doc.onShowEditDialog = (Cell c) {
+      onShowEditDialog(c);
+    };
+    doc.onDefaultFocus = () {
+      onDefaultFocus();
+    };
     return doc;
   }
 
   Function onUpdate = () {};
+  Function onShowEditDialog = (Cell c) {};
+  Function onDefaultFocus = () {};
+
+  void requestDefaultFocus() {
+    onDefaultFocus();
+  }
+
   List<Doc> docs = [];
   int currentDocIndex = 0;
 
@@ -72,7 +91,8 @@ class Context {
       return;
     }
 
-    docs[currentDocIndex].processKeyDown(event);
+    processed = docs[currentDocIndex].processKeyDown(event);
+    //print("Processed: $processed");
     processedLastKey = processed;
   }
 
@@ -115,11 +135,12 @@ class Context {
     );
   }
 
-  Widget build(BuildContext context, double viewportWidth) {
+  Widget build(
+      BuildContext context, double viewportWidth, double viewportHeight) {
     Widget currentDoc = Container();
     if (currentDocIndex >= 0 && currentDocIndex < docs.length) {
-      currentDoc =
-          docs[currentDocIndex].build(context, viewportWidth - 50 - 50);
+      currentDoc = docs[currentDocIndex]
+          .build(context, viewportWidth - 50 - 50, viewportHeight - 50 - 50);
     }
 
     //return Container(color: Colors.yellow, width: 50);

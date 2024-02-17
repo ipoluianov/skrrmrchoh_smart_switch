@@ -3,13 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:sss/context/cell_editor_text.dart';
 
 import 'cell.dart';
+import 'cell_editor.dart';
 import 'col.dart';
 
 class Doc {
   String displayName = "Tab";
-  List<Cell> cells = [];
+  List<Cell> _cells = [];
   int currentX = 0;
   int currentY = 0;
 
@@ -20,19 +22,27 @@ class Doc {
   }
 
   bool editing_ = false;
-  FocusNode currentFocusNode_ = FocusNode();
-  TextEditingController currentTextEditingController_ = TextEditingController();
+  CellEditor? currentEditor;
 
   void notifyChanges() {
     onUpdate();
   }
 
   Function onUpdate = () {};
+  Function onShowEditDialog = (Cell c) {};
+  Function onNeedCloseEditor = () {};
+
+  Function onDefaultFocus = () {};
+
+  void requestDefaultFocus() {
+    onDefaultFocus();
+  }
 
   void setCurrentCell(int x, int y) {
     currentX = x;
     currentY = y;
-    scrollToItem(y);
+    scrollToItemX(x);
+    scrollToItemY(y);
     notifyChanges();
   }
 
@@ -42,6 +52,12 @@ class Doc {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
         editing_ = false;
         processed = true;
+      }
+      if (dialogEditorIsActive()) {
+        var cell = getCell(currentX, currentY);
+        if (cell != null) {
+          return cell.processKeyDownEvent(event);
+        }
       }
     } else {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
@@ -69,15 +85,16 @@ class Doc {
         processed = true;
       }
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-        editing_ = true;
         processed = true;
 
         var cell = getCell(currentX, currentY);
         if (cell != null) {
-          currentTextEditingController_.text = cell.content;
-          Timer.run(() {
-            currentFocusNode_.requestFocus();
-          });
+          if (cell.cellEditorType != Cell.cellEditorTypeNone) {
+            editing_ = true;
+            if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+              onShowEditDialog(cell);
+            }
+          }
         }
       }
     }
@@ -87,7 +104,7 @@ class Doc {
 
   int rowCount() {
     int maxRowIndex = -1;
-    for (Cell c in cells) {
+    for (Cell c in _cells) {
       if (c.y > maxRowIndex) {
         maxRowIndex = c.y;
       }
@@ -115,8 +132,28 @@ class Doc {
     return result;
   }
 
+  Cell setCell(int x, int y, String content) {
+    Cell c = Cell(x, y, content);
+    c.onNeedCloseEditor = () {
+      editing_ = false;
+      notifyChanges();
+    };
+    bool found = false;
+    for (int i = 0; i < _cells.length; i++) {
+      var c = _cells[i];
+      if (c.x == x && c.y == y) {
+        _cells[i] = c;
+        found = true;
+      }
+    }
+    if (!found) {
+      _cells.add(c);
+    }
+    return c;
+  }
+
   Cell? getCell(int x, int y) {
-    for (var c in cells) {
+    for (var c in _cells) {
       if (c.x == x && c.y == y) {
         return c;
       }
@@ -124,31 +161,60 @@ class Doc {
     return null;
   }
 
+  bool dialogEditorIsActive() {
+    if (!editing_) {
+      return false;
+    }
+    Cell? cell = getCell(currentX, currentY);
+    if (cell != null) {
+      if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   ScrollController hController = ScrollController();
   ScrollController vController = ScrollController();
 
-  void scrollToItem(int itemIndex) {
+  void scrollToItemY(int itemIndex) {
     final double itemPosition = itemIndex * rowHeight(0);
     final double scrollPosition = vController.position.pixels;
     final double viewportHeight = vController.position.viewportDimension;
 
     if (itemPosition < scrollPosition) {
-      // Элемент находится выше видимой области, прокрутим вверх
       vController.jumpTo(itemPosition);
     } else if ((itemPosition + rowHeight(0)) >
         (scrollPosition + viewportHeight)) {
-      // Элемент находится ниже видимой области, прокрутим вниз
-      // Прокрутим так, чтобы элемент оказался внизу видимой области
       vController.jumpTo(itemPosition + rowHeight(0) - viewportHeight);
     }
   }
 
-  Widget build(BuildContext context, double viewportWidth) {
+  void scrollToItemX(int itemIndex) {
+    double itemPosition = 0;
+    double itemPositionPlusOne = 0;
+    for (int i = 0; i < itemIndex; i++) {
+      itemPosition += columns[i].width;
+    }
+    for (int i = 0; i < itemIndex + 1; i++) {
+      itemPositionPlusOne += columns[i].width;
+    }
+    final double scrollPosition = hController.position.pixels;
+    final double viewportWidth = hController.position.viewportDimension;
+
+    if (itemPosition < scrollPosition) {
+      hController.jumpTo(itemPosition);
+    } else if ((itemPositionPlusOne) > (scrollPosition + viewportWidth)) {
+      hController.jumpTo(itemPositionPlusOne - viewportWidth);
+    }
+  }
+
+  Widget build(
+      BuildContext context, double viewportWidth, double viewPortHeight) {
     //return Text("123");
     int rs = rowCount();
     int cs = columnCount();
     List<Widget> rows = [];
-    Color borderColor = Colors.white10;
     List<Widget> cellsInHeaderRow = [];
     for (int x = 0; x < cs; x++) {
       cellsInHeaderRow.add(
@@ -172,27 +238,48 @@ class Doc {
       for (int x = 0; x < cs; x++) {
         var cell = getCell(x, y);
 
+        BoxBorder border = Border.all(width: 0, color: Colors.transparent);
+
         if (cell != null) {
           if (x == currentX && y == currentY) {
-            borderColor = Colors.blue;
+            border = Border.all(width: 2, color: Colors.blue);
           } else {
-            borderColor = cell.borderColor;
+            border = Border(
+              left: BorderSide(
+                color: cell.borderLeft.color,
+                width: cell.borderLeft.width,
+              ),
+              right: BorderSide(
+                color: cell.borderRight.color,
+                width: cell.borderRight.width,
+              ),
+              top: BorderSide(
+                color: cell.borderTop.color,
+                width: cell.borderTop.width,
+              ),
+              bottom: BorderSide(
+                color: cell.borderBottom.color,
+                width: cell.borderBottom.width,
+              ),
+            );
           }
 
           Widget widget = Container();
 
           if (x == currentX && y == currentY && editing_) {
-            widget = TextField(
-              controller: currentTextEditingController_,
-              focusNode: currentFocusNode_,
-              onSubmitted: (value) {
-                var cell = getCell(currentX, currentY);
-                if (cell != null) {
-                  cell.content = value;
-                }
+            CellEditor? editor = cell.buildEditor(() {
+              editing_ = false;
+            });
+            if (editor == null) {
+              Timer.run(() {
                 editing_ = false;
-              },
-            );
+                notifyChanges();
+              });
+            } else {
+              if (!editor.inDialog) {
+                widget = editor;
+              }
+            }
           } else {
             widget = GestureDetector(
               onTap: () {},
@@ -203,9 +290,9 @@ class Doc {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white24,
-                  border: Border.all(color: borderColor, width: 2),
+                  border: border,
                 ),
-                child: Text(cell.content),
+                child: cell.buildViewer(),
               ),
             );
           }
@@ -238,37 +325,85 @@ class Doc {
 
     //print(viewportWidth);
 
-    docWidget = Scrollbar(
-      controller: vController,
-      thumbVisibility: true,
-      child: SingleChildScrollView(
+    docWidget = ScrollbarTheme(
+      data: ScrollbarThemeData(
+        crossAxisMargin: 0, // Сдвигаем Scrollbar ближе к контенту
+        thumbVisibility:
+            MaterialStateProperty.all(true), // Всегда показываем ползунок
+        thickness: MaterialStateProperty.all(20), // Толщина ползунка
+        radius: Radius.circular(3), // Радиус скругления ползунка
+      ),
+      // Виджет Scrollbar
+      child: Scrollbar(
         controller: vController,
-        child: docWidget,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: vController,
+          child: docWidget,
+        ),
       ),
     );
+
+    double w = docWidth();
+    if (viewportWidth > w) {
+      w = viewportWidth;
+    }
 
     Widget fullWidget = Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //headerRow,
+          SizedBox(
+            width: w,
+            child: headerRow,
+          ),
           Expanded(
-            child: docWidget,
+            child: SizedBox(
+              width: w,
+              child: docWidget,
+            ),
           ),
         ],
       ),
     );
 
-    return Container(
-      child: Scrollbar(
-        controller: hController,
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          controller: hController,
-          child: fullWidget,
+    Widget editorDialog = Container();
+
+    if (dialogEditorIsActive()) {
+      var cell = getCell(currentX, currentY);
+      if (cell != null) {
+        editorDialog = Center(
+          child: Container(
+            width: viewportWidth / 2,
+            height: viewPortHeight / 2,
+            color: Colors.cyan,
+            child: cell.buildEditor(() {
+              editing_ = false;
+            }),
+          ),
+        );
+      }
+    }
+
+    return Stack(
+      children: [
+        Container(
+          width: viewportWidth,
+          color: Colors.yellow.withOpacity(0.1),
+          child: Container(
+            child: Scrollbar(
+              controller: hController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                controller: hController,
+                child: fullWidget,
+              ),
+            ),
+          ),
         ),
-      ),
+        editorDialog,
+      ],
     );
   }
 }
