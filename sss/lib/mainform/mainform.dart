@@ -44,6 +44,7 @@ class MainFormState extends State<MainForm> {
   }
 
   Widget buildContent(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     //print("MainForm Build State:");
     return Focus(
       focusNode: focusNode,
@@ -52,7 +53,7 @@ class MainFormState extends State<MainForm> {
         return KeyEventResult.ignored;
       },
       child: Container(
-        child: ctx.build(context),
+        child: ctx.build(context, screenWidth),
         //child: Text("123"),
       ),
     );

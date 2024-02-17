@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'cell.dart';
@@ -106,6 +107,14 @@ class Doc {
     return 30;
   }
 
+  double docWidth() {
+    double result = 0;
+    for (int i = 0; i < columnCount(); i++) {
+      result += columns[i].width;
+    }
+    return result;
+  }
+
   Cell? getCell(int x, int y) {
     for (var c in cells) {
       if (c.x == x && c.y == y) {
@@ -115,6 +124,7 @@ class Doc {
     return null;
   }
 
+  ScrollController hController = ScrollController();
   ScrollController vController = ScrollController();
 
   void scrollToItem(int itemIndex) {
@@ -133,7 +143,7 @@ class Doc {
     }
   }
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, double viewportWidth) {
     //return Text("123");
     int rs = rowCount();
     int cs = columnCount();
@@ -226,28 +236,49 @@ class Doc {
       children: rows,
     );
 
-    docWidget = Scrollbar(
-      controller: vController,
-      thumbVisibility: true,
-      child: SingleChildScrollView(
+    print(viewportWidth);
+
+    docWidget = ScrollbarTheme(
+      data: ScrollbarThemeData(
+        crossAxisMargin: 0, // Сдвигаем Scrollbar ближе к контенту
+        thumbVisibility:
+            MaterialStateProperty.all(true), // Всегда показываем ползунок
+        thickness: MaterialStateProperty.all(20), // Толщина ползунка
+        radius: Radius.circular(10), // Радиус скругления ползунка
+      ),
+      // Виджет Scrollbar
+      child: Scrollbar(
         controller: vController,
+        thumbVisibility: true,
         child: SingleChildScrollView(
-          //controller: hController,
+          controller: vController,
           child: docWidget,
         ),
       ),
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        headerRow,
-        Expanded(
-          child: Container(
+    Widget fullWidget = Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          headerRow,
+          Expanded(
             child: docWidget,
           ),
+        ],
+      ),
+    );
+
+    return Container(
+      child: Scrollbar(
+        controller: hController,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          controller: hController,
+          child: fullWidget,
         ),
-      ],
+      ),
     );
   }
 }

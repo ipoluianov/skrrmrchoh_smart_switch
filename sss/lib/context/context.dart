@@ -115,10 +115,11 @@ class Context {
     );
   }
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, double viewportWidth) {
     Widget currentDoc = Container();
     if (currentDocIndex >= 0 && currentDocIndex < docs.length) {
-      currentDoc = docs[currentDocIndex].build(context);
+      currentDoc =
+          docs[currentDocIndex].build(context, viewportWidth - 50 - 50);
     }
 
     //return Container(color: Colors.yellow, width: 50);
