@@ -8,15 +8,39 @@ import 'doc.dart';
 
 class Context {
   Context() {
-    var doc = addDoc();
-    for (int y = 0; y < 10; y++) {
-      for (int x = 0; x < 10; x++) {
-        doc.cells.add(Cell(x, y, "item $x $y"));
+    {
+      var doc = addDoc();
+      doc.addColumn("Index", 50);
+      doc.addColumn("Relay Number", 100);
+      doc.addColumn("Action", 200);
+      doc.addColumn("Switch Falling Edge", 100);
+      doc.addColumn("Switch Rising Edge", 100);
+      doc.addColumn("Relay Falling Edge", 100);
+      doc.addColumn("Relay Rising Edge", 100);
+      doc.addColumn("Switch Double Click", 100);
+      doc.addColumn("Time Hours", 100);
+      doc.addColumn("Time Minutes", 100);
+      doc.addColumn("Time Value", 100);
+
+      doc.displayName = "EEPROM";
+      for (int y = 0; y < 64; y++) {
+        doc.cells.add(Cell(0, y, "$y"));
+      }
+      for (int y = 0; y < 64; y++) {
+        for (int x = 1; x < 11; x++) {
+          doc.cells.add(Cell(x, y, "FF"));
+        }
       }
     }
-
-    doc.getCell(5, 5)!.borderWidth = 1;
-    doc.getCell(5, 5)!.borderColor = Colors.red;
+    {
+      var doc = addDoc();
+      doc.displayName = "Relay View";
+      for (int y = 0; y < 5; y++) {
+        for (int x = 0; x < 5; x++) {
+          doc.cells.add(Cell(x, y, "item $x $y"));
+        }
+      }
+    }
   }
 
   Doc addDoc() {
@@ -52,15 +76,44 @@ class Context {
     processedLastKey = processed;
   }
 
-  Widget buildHeader(BuildContext context) {
-    return Container(
-      height: 50,
-      color: Colors.green,
+  Widget buildButton(BuildContext context, int index) {
+    Color col = Colors.white24;
+    if (index == currentDocIndex) {
+      col = Colors.blue;
+    }
+    Doc doc = docs[index];
+    return GestureDetector(
+      onTap: () {
+        currentDocIndex = index;
+        notifyChanges();
+      },
+      child: Container(
+        width: 100,
+        height: 50,
+        decoration: BoxDecoration(
+          color: col,
+          border: Border.all(
+            color: Colors.white,
+          ),
+        ),
+        child: Container(
+          child: Center(
+            child: Text(doc.displayName),
+          ),
+        ),
+      ),
     );
   }
 
-  ScrollController hController = ScrollController();
-  ScrollController vController = ScrollController();
+  Widget buildHeader(BuildContext context) {
+    List<Widget> buttons = [];
+    for (int i = 0; i < docs.length; i++) {
+      buttons.add(buildButton(context, i));
+    }
+    return Row(
+      children: buttons,
+    );
+  }
 
   Widget build(BuildContext context) {
     Widget currentDoc = Container();
@@ -68,28 +121,14 @@ class Context {
       currentDoc = docs[currentDocIndex].build(context);
     }
 
-    currentDoc = Scrollbar(
-      controller: vController,
-      thumbVisibility: true,
-      child: SingleChildScrollView(
-        controller: vController,
-        child: Scrollbar(
-          controller: hController,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            controller: hController,
-            scrollDirection: Axis.horizontal,
-            child: currentDoc,
-          ),
-        ),
-      ),
-    );
+    //return Container(color: Colors.yellow, width: 50);
 
     return Row(
       children: [
         Container(color: Colors.yellow, width: 50),
         Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               buildHeader(context),
               Expanded(
@@ -101,17 +140,7 @@ class Context {
               ),
             ],
           ),
-        ),
-        Scrollbar(
-          thumbVisibility: true,
-          trackVisibility: true,
-          thickness: 20,
-          child: Container(
-            width: 40,
-            //height: 100,
-            color: Colors.red.withOpacity(0.3),
-          ),
-          controller: vController,
+          //Text("qqq"),
         ),
         Container(color: Colors.purple, width: 50),
       ],

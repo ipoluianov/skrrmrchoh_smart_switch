@@ -51,14 +51,23 @@ class MainFormState extends State<MainForm> {
         if (ctx.processedLastKey) return KeyEventResult.handled;
         return KeyEventResult.ignored;
       },
-      child: Expanded(
+      child: Container(
         child: ctx.build(context),
+        //child: Text("123"),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        color: Colors.black,
+        child: Container(
+          child: buildContent(context),
+        ),
+      ),
+    );
     return Scaffold(
       body: Container(
         color: Colors.black,

@@ -4,11 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'cell.dart';
+import 'col.dart';
 
 class Doc {
+  String displayName = "Tab";
   List<Cell> cells = [];
   int currentX = 0;
   int currentY = 0;
+
+  List<Col> columns = [];
+
+  void addColumn(String displayName, double width) {
+    columns.add(Col(columns.length, displayName, width));
+  }
 
   bool editing_ = false;
   FocusNode currentFocusNode_ = FocusNode();
@@ -23,6 +31,7 @@ class Doc {
   void setCurrentCell(int x, int y) {
     currentX = x;
     currentY = y;
+    scrollToItem(y);
     notifyChanges();
   }
 
@@ -86,17 +95,11 @@ class Doc {
   }
 
   int columnCount() {
-    int maxColumnIndex = -1;
-    for (Cell c in cells) {
-      if (c.x > maxColumnIndex) {
-        maxColumnIndex = c.x;
-      }
-    }
-    return maxColumnIndex + 1;
+    return columns.length;
   }
 
   double columnWidth(int index) {
-    return 100;
+    return columns[index].width;
   }
 
   double rowHeight(int index) {
@@ -112,11 +115,48 @@ class Doc {
     return null;
   }
 
+  ScrollController vController = ScrollController();
+
+  void scrollToItem(int itemIndex) {
+    final double itemPosition = itemIndex * rowHeight(0);
+    final double scrollPosition = vController.position.pixels;
+    final double viewportHeight = vController.position.viewportDimension;
+
+    if (itemPosition < scrollPosition) {
+      // Элемент находится выше видимой области, прокрутим вверх
+      vController.jumpTo(itemPosition);
+    } else if ((itemPosition + rowHeight(0)) >
+        (scrollPosition + viewportHeight)) {
+      // Элемент находится ниже видимой области, прокрутим вниз
+      // Прокрутим так, чтобы элемент оказался внизу видимой области
+      vController.jumpTo(itemPosition + rowHeight(0) - viewportHeight);
+    }
+  }
+
   Widget build(BuildContext context) {
+    //return Text("123");
     int rs = rowCount();
     int cs = columnCount();
     List<Widget> rows = [];
     Color borderColor = Colors.white10;
+    List<Widget> cellsInHeaderRow = [];
+    for (int x = 0; x < cs; x++) {
+      cellsInHeaderRow.add(
+        SizedBox(
+          width: columnWidth(x),
+          height: 50,
+          child: Padding(
+            padding: const EdgeInsets.all(0),
+            child: Text(columns[x].displayName),
+          ),
+        ),
+      );
+    }
+    Widget headerRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: cellsInHeaderRow,
+    );
+
     for (int y = 0; y < rs; y++) {
       List<Widget> cellsInRow = [];
       for (int x = 0; x < cs; x++) {
@@ -145,7 +185,8 @@ class Doc {
             );
           } else {
             widget = GestureDetector(
-              onTap: () {
+              onTap: () {},
+              onTapDown: (details) {
                 setCurrentCell(x, y);
                 editing_ = false;
               },
@@ -173,12 +214,40 @@ class Doc {
           cellsInRow.add(Container());
         }
       }
-      rows.add(Row(
-        children: cellsInRow,
-      ));
+      rows.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: cellsInRow,
+        ),
+      );
     }
-    return Column(
+    Widget docWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: rows,
+    );
+
+    docWidget = Scrollbar(
+      controller: vController,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: vController,
+        child: SingleChildScrollView(
+          //controller: hController,
+          child: docWidget,
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        headerRow,
+        Expanded(
+          child: Container(
+            child: docWidget,
+          ),
+        ),
+      ],
     );
   }
 }
