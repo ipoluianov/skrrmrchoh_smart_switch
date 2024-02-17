@@ -236,24 +236,14 @@ class Doc {
       children: rows,
     );
 
-    print(viewportWidth);
+    //print(viewportWidth);
 
-    docWidget = ScrollbarTheme(
-      data: ScrollbarThemeData(
-        crossAxisMargin: 0, // Сдвигаем Scrollbar ближе к контенту
-        thumbVisibility:
-            MaterialStateProperty.all(true), // Всегда показываем ползунок
-        thickness: MaterialStateProperty.all(20), // Толщина ползунка
-        radius: Radius.circular(10), // Радиус скругления ползунка
-      ),
-      // Виджет Scrollbar
-      child: Scrollbar(
+    docWidget = Scrollbar(
+      controller: vController,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
         controller: vController,
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          controller: vController,
-          child: docWidget,
-        ),
+        child: docWidget,
       ),
     );
 
@@ -261,7 +251,7 @@ class Doc {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          headerRow,
+          //headerRow,
           Expanded(
             child: docWidget,
           ),
