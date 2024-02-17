@@ -102,6 +102,17 @@ class Context {
             ],
           ),
         ),
+        Scrollbar(
+          thumbVisibility: true,
+          trackVisibility: true,
+          thickness: 20,
+          child: Container(
+            width: 40,
+            //height: 100,
+            color: Colors.red.withOpacity(0.3),
+          ),
+          controller: vController,
+        ),
         Container(color: Colors.purple, width: 50),
       ],
     );
