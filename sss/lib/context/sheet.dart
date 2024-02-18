@@ -233,6 +233,9 @@ class Sheet {
     int cs = columnCount();
     List<Widget> rows = [];
 
+    BorderSide borderSideCommon =
+        const BorderSide(width: 1, color: Colors.white10);
+
     for (int y = 0; y < rs; y++) {
       List<Widget> cellsInRow = [];
       for (int x = 0; x < cs; x++) {
@@ -248,8 +251,15 @@ class Sheet {
           SizedBox(
             width: columnWidth(x),
             height: rowHeight(y),
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.all(0),
+              decoration: BoxDecoration(
+                border: Border(
+                  left: borderSideCommon,
+                  top: borderSideCommon,
+                  //left: borderSideCommon,
+                ),
+              ),
               child: widget,
             ),
           ),
