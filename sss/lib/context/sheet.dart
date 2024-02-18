@@ -1,15 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:sss/context/cell_editor_text.dart';
 
 import 'cell.dart';
 import 'cell_editor.dart';
 import 'col.dart';
 
-class Doc {
+class Sheet {
   String displayName = "Tab";
   List<Cell> _cells = [];
   int currentX = 0;
@@ -55,9 +53,7 @@ class Doc {
       }
       if (dialogEditorIsActive()) {
         var cell = getCell(currentX, currentY);
-        if (cell != null) {
-          return cell.processKeyDownEvent(event);
-        }
+        return cell.processKeyDownEvent(event);
       }
     } else {
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
@@ -88,12 +84,11 @@ class Doc {
         processed = true;
 
         var cell = getCell(currentX, currentY);
-        if (cell != null) {
-          if (cell.cellEditorType != Cell.cellEditorTypeNone) {
-            editing_ = true;
-            if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
-              onShowEditDialog(cell);
-            }
+
+        if (cell.cellEditorType != Cell.cellEditorTypeNone) {
+          editing_ = true;
+          if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+            onShowEditDialog(cell);
           }
         }
       }
@@ -124,7 +119,7 @@ class Doc {
     return 30;
   }
 
-  double docWidth() {
+  double sheetWidth() {
     double result = 0;
     for (int i = 0; i < columnCount(); i++) {
       result += columns[i].width;
@@ -152,25 +147,24 @@ class Doc {
     return c;
   }
 
-  Cell? getCell(int x, int y) {
+  Cell getCell(int x, int y) {
     for (var c in _cells) {
       if (c.x == x && c.y == y) {
         return c;
       }
     }
-    return null;
+    return Cell(0, 0, "");
   }
 
   bool dialogEditorIsActive() {
     if (!editing_) {
       return false;
     }
-    Cell? cell = getCell(currentX, currentY);
-    if (cell != null) {
-      if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
-        return true;
-      }
+    Cell cell = getCell(currentX, currentY);
+    if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+      return true;
     }
+
     return false;
   }
 
@@ -215,8 +209,192 @@ class Doc {
     int rs = rowCount();
     int cs = columnCount();
     List<Widget> rows = [];
+
+    for (int y = 0; y < rs; y++) {
+      List<Widget> cellsInRow = [];
+      for (int x = 0; x < cs; x++) {
+        var cell = getCell(x, y);
+
+        Widget widget = Container();
+        if (x == currentX && y == currentY && editing_) {
+          widget = buildEditor();
+        } else {
+          widget = buildCellViewer(cell);
+        }
+        cellsInRow.add(
+          SizedBox(
+            width: columnWidth(x),
+            height: rowHeight(y),
+            child: Padding(
+              padding: const EdgeInsets.all(0),
+              child: widget,
+            ),
+          ),
+        );
+      }
+
+      rows.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: cellsInRow,
+        ),
+      );
+    }
+
+    // Place rows to column of widgets
+    Widget sheetWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: rows,
+    );
+
+    // Cover rows with Vertical Scroll View
+    sheetWidget = ScrollbarTheme(
+      data: ScrollbarThemeData(
+        crossAxisMargin: 0,
+        thumbVisibility: MaterialStateProperty.all(true),
+        thickness: MaterialStateProperty.all(20),
+        radius: const Radius.circular(3),
+      ),
+      child: Scrollbar(
+        controller: vController,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: vController,
+          child: sheetWidget,
+        ),
+      ),
+    );
+
+    double w = sheetWidth();
+    if (viewportWidth > w) {
+      w = viewportWidth;
+    }
+
+    // Full Widget is
+    // - Header
+    // - Rows
+    Widget fullWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: w,
+          child: buildHeaderRow(),
+        ),
+        Expanded(
+          child: SizedBox(
+            width: w,
+            child: sheetWidget,
+          ),
+        ),
+      ],
+    );
+
+    // Sheet area
+    // Stack of
+    // - content
+    // - edit dialog
+    return Stack(
+      children: [
+        Container(
+          width: viewportWidth,
+          color: Colors.yellow.withOpacity(0.1),
+          child: Scrollbar(
+            controller: hController,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              controller: hController,
+              child: fullWidget,
+            ),
+          ),
+        ),
+        buildEditorDialog(viewportWidth * 0.75, viewPortHeight * 0.75),
+      ],
+    );
+  }
+
+  BoxBorder buildCellBorder(Cell cell) {
+    BoxBorder border = Border.all(width: 0, color: Colors.transparent);
+    if (cell.x == currentX && cell.y == currentY) {
+      border = Border.all(width: 2, color: Colors.blue);
+    } else {
+      border = Border(
+        left: BorderSide(
+          color: cell.borderLeft.color,
+          width: cell.borderLeft.width,
+        ),
+        right: BorderSide(
+          color: cell.borderRight.color,
+          width: cell.borderRight.width,
+        ),
+        top: BorderSide(
+          color: cell.borderTop.color,
+          width: cell.borderTop.width,
+        ),
+        bottom: BorderSide(
+          color: cell.borderBottom.color,
+          width: cell.borderBottom.width,
+        ),
+      );
+    }
+    return border;
+  }
+
+  Widget buildCellViewer(Cell cell) {
+    Widget widget = MouseRegion(
+      onEnter: (event) {
+        cell.hover = true;
+        notifyChanges();
+      },
+      onExit: (event) {
+        cell.hover = true;
+        notifyChanges();
+      },
+      child: Listener(
+        onPointerDown: (event) {
+          setCurrentCell(cell.x, cell.y);
+          editing_ = false;
+        },
+        child: GestureDetector(
+          onDoubleTap: () {
+            setCurrentCell(cell.x, cell.y);
+            editing_ = true;
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              border: buildCellBorder(cell),
+            ),
+            child: cell.buildViewer(),
+          ),
+        ),
+      ),
+    );
+    return widget;
+  }
+
+  Widget buildEditor() {
+    Cell cell = getCell(currentX, currentY);
+
+    if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+      return Container();
+    }
+    Widget? editor = cell.buildEditor(columns[currentX].displayName, () {
+      editing_ = false;
+    });
+    if (editor == null) {
+      Timer.run(() {
+        editing_ = false;
+        notifyChanges();
+      });
+    }
+    editor ??= Container();
+    return editor;
+  }
+
+  Widget buildHeaderRow() {
     List<Widget> cellsInHeaderRow = [];
-    for (int x = 0; x < cs; x++) {
+    for (int x = 0; x < columnCount(); x++) {
       cellsInHeaderRow.add(
         SizedBox(
           width: columnWidth(x),
@@ -232,193 +410,26 @@ class Doc {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: cellsInHeaderRow,
     );
+    return headerRow;
+  }
 
-    for (int y = 0; y < rs; y++) {
-      List<Widget> cellsInRow = [];
-      for (int x = 0; x < cs; x++) {
-        var cell = getCell(x, y);
+  // Prepare editor dialog
+  Widget buildEditorDialog(double width, double height) {
+    Widget editorDialog = Container();
+    if (dialogEditorIsActive()) {
+      var cell = getCell(currentX, currentY);
 
-        BoxBorder border = Border.all(width: 0, color: Colors.transparent);
-
-        if (cell != null) {
-          if (x == currentX && y == currentY) {
-            border = Border.all(width: 2, color: Colors.blue);
-          } else {
-            border = Border(
-              left: BorderSide(
-                color: cell.borderLeft.color,
-                width: cell.borderLeft.width,
-              ),
-              right: BorderSide(
-                color: cell.borderRight.color,
-                width: cell.borderRight.width,
-              ),
-              top: BorderSide(
-                color: cell.borderTop.color,
-                width: cell.borderTop.width,
-              ),
-              bottom: BorderSide(
-                color: cell.borderBottom.color,
-                width: cell.borderBottom.width,
-              ),
-            );
-          }
-
-          Widget widget = Container();
-
-          if (x == currentX && y == currentY && editing_) {
-            CellEditor? editor = cell.buildEditor(() {
-              editing_ = false;
-            });
-            if (editor == null) {
-              Timer.run(() {
-                editing_ = false;
-                notifyChanges();
-              });
-            } else {
-              if (!editor.inDialog) {
-                widget = editor;
-              }
-            }
-          } else {
-            widget = MouseRegion(
-              onEnter: (event) {
-                cell.hover = true;
-              },
-              onExit: (event) {
-                cell.hover = true;
-              },
-              child: Listener(
-                onPointerDown: (event) {
-                  setCurrentCell(x, y);
-                  editing_ = false;
-                },
-                child: GestureDetector(
-                  onTap: () {},
-                  onTapDown: (details) {},
-                  onDoubleTap: () {
-                    setCurrentCell(x, y);
-                    editing_ = true;
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      border: border,
-                    ),
-                    child: cell.buildViewer(),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          cellsInRow.add(
-            SizedBox(
-              width: columnWidth(x),
-              height: rowHeight(y),
-              child: Padding(
-                padding: const EdgeInsets.all(0),
-                child: widget,
-              ),
-            ),
-          );
-        } else {
-          cellsInRow.add(Container());
-        }
-      }
-      rows.add(
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: cellsInRow,
+      editorDialog = Center(
+        child: Container(
+          width: width,
+          height: height,
+          color: Colors.black38,
+          child: cell.buildEditor(columns[currentX].displayName, () {
+            editing_ = false;
+          }),
         ),
       );
     }
-    Widget docWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: rows,
-    );
-
-    //print(viewportWidth);
-
-    docWidget = ScrollbarTheme(
-      data: ScrollbarThemeData(
-        crossAxisMargin: 0, // Сдвигаем Scrollbar ближе к контенту
-        thumbVisibility:
-            MaterialStateProperty.all(true), // Всегда показываем ползунок
-        thickness: MaterialStateProperty.all(20), // Толщина ползунка
-        radius: Radius.circular(3), // Радиус скругления ползунка
-      ),
-      // Виджет Scrollbar
-      child: Scrollbar(
-        controller: vController,
-        thumbVisibility: true,
-        child: SingleChildScrollView(
-          controller: vController,
-          child: docWidget,
-        ),
-      ),
-    );
-
-    double w = docWidth();
-    if (viewportWidth > w) {
-      w = viewportWidth;
-    }
-
-    Widget fullWidget = Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: w,
-            child: headerRow,
-          ),
-          Expanded(
-            child: SizedBox(
-              width: w,
-              child: docWidget,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    Widget editorDialog = Container();
-
-    if (dialogEditorIsActive()) {
-      var cell = getCell(currentX, currentY);
-      if (cell != null) {
-        editorDialog = Center(
-          child: Container(
-            width: viewportWidth * 0.75,
-            height: viewPortHeight * 0.75,
-            color: Colors.black38,
-            child: cell.buildEditor(() {
-              editing_ = false;
-            }),
-          ),
-        );
-      }
-    }
-
-    return Stack(
-      children: [
-        Container(
-          width: viewportWidth,
-          color: Colors.yellow.withOpacity(0.1),
-          child: Container(
-            child: Scrollbar(
-              controller: hController,
-              thumbVisibility: true,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                controller: hController,
-                child: fullWidget,
-              ),
-            ),
-          ),
-        ),
-        editorDialog,
-      ],
-    );
+    return editorDialog;
   }
 }

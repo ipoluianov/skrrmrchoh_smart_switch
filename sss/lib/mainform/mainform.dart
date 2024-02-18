@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/context.dart';
-import 'package:sss/context/doc.dart';
-
-import '../context/cell.dart';
 
 class MainForm extends StatefulWidget {
   const MainForm({super.key});
@@ -41,7 +38,6 @@ class MainFormState extends State<MainForm> {
   }
 
   void _handleKey(RawKeyEvent event) {
-    //print("_handleKey ${event.logicalKey}");
     setState(() {
       if (event is RawKeyDownEvent) {
         ctx.processKeyDown(event);
@@ -58,17 +54,14 @@ class MainFormState extends State<MainForm> {
   Widget buildContent(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    //print("MainForm Build State:");
     return Focus(
       focusNode: focusNode,
       onKey: (node, event) {
-        print("ON_KEY ${ctx.processedLastKey}");
         if (ctx.processedLastKey) return KeyEventResult.handled;
         return KeyEventResult.ignored;
       },
       child: Container(
         child: ctx.build(context, screenWidth, screenHeight),
-        //child: Text("123"),
       ),
     );
   }

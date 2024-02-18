@@ -31,7 +31,7 @@ class Cell {
     onNeedCloseEditor();
   }
 
-  CellEditor? buildEditor(Function() onAccept) {
+  CellEditor? buildEditor(String header, Function() onAccept) {
     CellEditor? result;
     switch (cellEditorType) {
       case cellEditorTypeNone:
@@ -42,6 +42,7 @@ class Cell {
       case cellEditorTypeSelect:
         result = CellEditorSelect(
           this,
+          header,
           options,
         );
         break;

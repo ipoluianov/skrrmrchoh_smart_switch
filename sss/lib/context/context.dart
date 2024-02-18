@@ -1,16 +1,14 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor_select.dart';
 
 import 'cell.dart';
-import 'doc.dart';
+import 'sheet.dart';
 
 class Context {
   Context() {
     {
-      var doc = addDoc();
+      var doc = addSheet();
       doc.addColumn("Index", 60);
       doc.addColumn("Relay Number", 60);
       doc.addColumn("Action", 60);
@@ -36,9 +34,12 @@ class Context {
           if (x == 3) {
             cell.cellEditorType = Cell.cellEditorTypeSelect;
             cell.options = [
-              CellEditorSelectItem("1", "1. --- 111 ---", null),
-              CellEditorSelectItem("2", "2. Реле номер пять", null),
-              CellEditorSelectItem("3", "3. Входная дверь1", null),
+              CellEditorSelectItem(
+                  "1", "1. --- 111 ---", LogicalKeyboardKey.digit1),
+              CellEditorSelectItem(
+                  "2", "2. Реле номер пять", LogicalKeyboardKey.digit2),
+              CellEditorSelectItem(
+                  "3", "3. Входная дверь1", LogicalKeyboardKey.digit3),
               CellEditorSelectItem("4", "4. Входная дверь2", null),
               CellEditorSelectItem("5", "5. Входная дверь3", null),
               CellEditorSelectItem("6", "6. Входная дверь4", null),
@@ -53,7 +54,7 @@ class Context {
       }
     }
     {
-      var doc = addDoc();
+      var doc = addSheet();
       doc.displayName = "Relay View";
       for (int y = 0; y < 5; y++) {
         for (int x = 0; x < 5; x++) {
@@ -63,8 +64,8 @@ class Context {
     }
   }
 
-  Doc addDoc() {
-    Doc doc = Doc();
+  Sheet addSheet() {
+    Sheet doc = Sheet();
     docs.add(doc);
     doc.onUpdate = notifyChanges;
     doc.onShowEditDialog = (Cell c) {
@@ -84,7 +85,7 @@ class Context {
     onDefaultFocus();
   }
 
-  List<Doc> docs = [];
+  List<Sheet> docs = [];
   int currentDocIndex = 0;
 
   bool processedLastKey = false;
@@ -115,7 +116,7 @@ class Context {
     if (index == currentDocIndex) {
       col = Colors.blue;
     }
-    Doc doc = docs[index];
+    Sheet doc = docs[index];
     return GestureDetector(
       onTap: () {
         currentDocIndex = index;
@@ -130,10 +131,8 @@ class Context {
             color: Colors.white,
           ),
         ),
-        child: Container(
-          child: Center(
-            child: Text(doc.displayName),
-          ),
+        child: Center(
+          child: Text(doc.displayName),
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor.dart';
@@ -6,7 +8,9 @@ import 'cell.dart';
 
 class CellEditorSelect extends CellEditor {
   final List<CellEditorSelectItem> items;
-  const CellEditorSelect(Cell c, this.items, {super.key}) : super(c, true);
+  final String header;
+  const CellEditorSelect(Cell c, this.header, this.items, {super.key})
+      : super(c, true);
 
   @override
   State<StatefulWidget> createState() {
@@ -31,6 +35,9 @@ class CellEditorSelectState extends State<CellEditorSelect> {
     for (int i = 0; i < widget.items.length; i++) {
       if (widget.items[i].value == widget.cell.content) {
         currentIndex = i;
+        Timer.run(() {
+          scrollToItemY(currentIndex);
+        });
         break;
       }
     }
@@ -107,8 +114,11 @@ class CellEditorSelectState extends State<CellEditorSelect> {
           },
           child: Container(
             color: col,
-            padding: const EdgeInsets.all(6),
-            child: Text(item.displayName),
+            padding: const EdgeInsets.all(3),
+            child: Text(
+              item.displayName,
+              style: const TextStyle(fontSize: 20),
+            ),
           ),
         ),
       ),
@@ -152,17 +162,17 @@ class CellEditorSelectState extends State<CellEditorSelect> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.black,
+          color: const Color.fromARGB(255, 50, 50, 50),
           border: Border.all(
-            color: Colors.blue,
-            width: 1,
+            color: Colors.white60,
+            width: 2,
           )),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: EdgeInsets.all(6),
-            child: Text("Header"),
+            padding: const EdgeInsets.all(6),
+            child: Text(widget.header),
           ),
           buildList(),
           Row(
