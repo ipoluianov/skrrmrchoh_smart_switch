@@ -389,18 +389,12 @@ class Doc {
       if (cell != null) {
         editorDialog = Center(
           child: Container(
-            child: Container(
-              width: viewportWidth / 2,
-              height: viewPortHeight / 2,
-              constraints: BoxConstraints(
-                maxWidth: viewportWidth / 2,
-                maxHeight: viewPortHeight / 2,
-              ),
-              color: Colors.black38,
-              child: cell.buildEditor(() {
-                editing_ = false;
-              }),
-            ),
+            width: viewportWidth * 0.75,
+            height: viewPortHeight * 0.75,
+            color: Colors.black38,
+            child: cell.buildEditor(() {
+              editing_ = false;
+            }),
           ),
         );
       }

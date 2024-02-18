@@ -36,17 +36,17 @@ class Context {
           if (x == 3) {
             cell.cellEditorType = Cell.cellEditorTypeSelect;
             cell.options = [
-              CellEditorSelectItem("1", "--- 111 ---", null),
-              CellEditorSelectItem("2", "Реле номер пять", null),
-              CellEditorSelectItem("3", "Входная дверь1", null),
-              CellEditorSelectItem("4", "Входная дверь2", null),
-              CellEditorSelectItem("5", "Входная дверь3", null),
-              CellEditorSelectItem("6", "Входная дверь4", null),
-              CellEditorSelectItem("7", "Входная дверь5", null),
-              CellEditorSelectItem("8", "Входная дверь6", null),
-              CellEditorSelectItem("9", "Входная дверь7", null),
-              CellEditorSelectItem("10", "Входная дверь8", null),
-              CellEditorSelectItem("11", "Входная дверь9", null),
+              CellEditorSelectItem("1", "1. --- 111 ---", null),
+              CellEditorSelectItem("2", "2. Реле номер пять", null),
+              CellEditorSelectItem("3", "3. Входная дверь1", null),
+              CellEditorSelectItem("4", "4. Входная дверь2", null),
+              CellEditorSelectItem("5", "5. Входная дверь3", null),
+              CellEditorSelectItem("6", "6. Входная дверь4", null),
+              CellEditorSelectItem("7", "7. Входная дверь5", null),
+              CellEditorSelectItem("8", "8. Входная дверь6", null),
+              CellEditorSelectItem("9", "9. Входная дверь7", null),
+              CellEditorSelectItem("10", "10. Входная дверь8", null),
+              CellEditorSelectItem("11", "11. Входная дверь9", null),
             ];
           }
         }
@@ -154,14 +154,14 @@ class Context {
     Widget currentDoc = Container();
     if (currentDocIndex >= 0 && currentDocIndex < docs.length) {
       currentDoc = docs[currentDocIndex]
-          .build(context, viewportWidth - 50 - 50, viewportHeight - 50 - 50);
+          .build(context, viewportWidth, viewportHeight - 50);
     }
 
     //return Container(color: Colors.yellow, width: 50);
 
     return Row(
       children: [
-        Container(color: Colors.yellow, width: 50),
+        Container(color: Colors.yellow, width: 0),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,14 +171,14 @@ class Context {
                 child: currentDoc,
               ),
               Container(
-                height: 50,
-                color: Colors.blue,
+                height: 10,
+                color: Colors.black,
               ),
             ],
           ),
           //Text("qqq"),
         ),
-        Container(color: Colors.purple, width: 50),
+        Container(color: Colors.purple, width: 0),
       ],
     );
   }

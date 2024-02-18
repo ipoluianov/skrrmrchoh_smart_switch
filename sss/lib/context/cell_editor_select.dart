@@ -121,10 +121,13 @@ class CellEditorSelectState extends State<CellEditorSelect> {
       wItems.add(buildItem(widget.items[i], i));
     }
     return Expanded(
-      child: ListView(
+      child: Scrollbar(
+        thumbVisibility: true,
         controller: vController,
-        //crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: wItems,
+        child: ListView(
+          controller: vController,
+          children: wItems,
+        ),
       ),
     );
   }
@@ -140,10 +143,8 @@ class CellEditorSelectState extends State<CellEditorSelect> {
 
     if (itemPosition < scrollPosition) {
       vController.jumpTo(itemPosition);
-      print("scroll to $itemPosition");
     } else if ((itemPosition + rowHeight) > (scrollPosition + viewportHeight)) {
       vController.jumpTo(itemPosition + rowHeight - viewportHeight);
-      print("scroll to $itemPosition");
     }
   }
 
@@ -159,35 +160,39 @@ class CellEditorSelectState extends State<CellEditorSelect> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Padding(
+            padding: EdgeInsets.all(6),
+            child: Text("Header"),
+          ),
           buildList(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: OutlinedButton(
                   onPressed: () {
                     selectItem(currentIndex);
                   },
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 70,
                     child: Center(
-                      child: const Text("OK"),
+                      child: Text("OK"),
                     ),
                   ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: OutlinedButton(
                   onPressed: () {
                     widget.cell.closeEditor();
                   },
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 70,
                     child: Center(
-                      child: const Text("Cancel"),
+                      child: Text("Cancel"),
                     ),
                   ),
                 ),

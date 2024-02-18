@@ -83,13 +83,5 @@ class MainFormState extends State<MainForm> {
         ),
       ),
     );
-    return Scaffold(
-      body: Container(
-        color: Colors.black,
-        child: Container(
-          child: buildContent(context),
-        ),
-      ),
-    );
   }
 }
