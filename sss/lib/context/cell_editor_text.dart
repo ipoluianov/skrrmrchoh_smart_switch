@@ -18,7 +18,7 @@ class CellEditorTextState extends State<CellEditorText> {
   @override
   void initState() {
     super.initState();
-    currentTextEditingController_.text = widget.cell.content;
+    currentTextEditingController_.text = widget.cell.value;
     currentFocusNode_.requestFocus();
     currentTextEditingController_.selection = TextSelection(
         baseOffset: 0, extentOffset: currentTextEditingController_.text.length);
@@ -64,7 +64,7 @@ class CellEditorTextState extends State<CellEditorText> {
         ),
       ),
       onSubmitted: (value) {
-        widget.cell.content = value;
+        widget.cell.value = value;
         widget.onAccept();
       },
     );

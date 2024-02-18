@@ -14,9 +14,14 @@ class Sheet {
   int currentY = 0;
 
   List<Col> columns = [];
+  List<Col> topHeaderColumns = [];
 
   void addColumn(String displayName, double width) {
     columns.add(Col(columns.length, displayName, width));
+  }
+
+  void addTopHeaderColumn(String displayName, double width) {
+    topHeaderColumns.add(Col(columns.length, displayName, width));
   }
 
   bool editing_ = false;
@@ -46,16 +51,34 @@ class Sheet {
 
   bool processKeyDown(RawKeyDownEvent event) {
     bool processed = false;
+    var cell = getCell(currentX, currentY);
     if (editing_) {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
         editing_ = false;
         processed = true;
       }
       if (dialogEditorIsActive()) {
-        var cell = getCell(currentX, currentY);
         return cell.processKeyDownEvent(event);
       }
     } else {
+      if (event.logicalKey == LogicalKeyboardKey.backspace ||
+          event.logicalKey == LogicalKeyboardKey.delete) {
+        if (cell.defaultValue != "!#NO#!") {
+          cell.value = cell.defaultValue;
+          notifyChanges();
+          processed = true;
+        }
+      }
+
+      for (var item in cell.shortcuts) {
+        if (item.key == event.logicalKey) {
+          cell.value = item.value;
+          notifyChanges();
+          processed = true;
+          break;
+        }
+      }
+
       if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
         if (currentY > 0) {
           setCurrentCell(currentX, currentY - 1);
@@ -153,7 +176,7 @@ class Sheet {
         return c;
       }
     }
-    return Cell(0, 0, "");
+    return Cell(x, y, "");
   }
 
   bool dialogEditorIsActive() {
@@ -278,6 +301,10 @@ class Sheet {
       children: [
         SizedBox(
           width: w,
+          child: buildTopHeaderRow(),
+        ),
+        SizedBox(
+          width: w,
           child: buildHeaderRow(),
         ),
         Expanded(
@@ -392,13 +419,45 @@ class Sheet {
     return editor;
   }
 
+  Widget buildTopHeaderRow() {
+    List<Widget> cellsInHeaderRow = [];
+    for (int x = 0; x < topHeaderColumns.length; x++) {
+      cellsInHeaderRow.add(
+        SizedBox(
+          width: topHeaderColumns[x].width,
+          height: 20,
+          child: Padding(
+            padding: EdgeInsets.only(left: 0, right: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 1,
+                    color: Colors.white30,
+                  ),
+                ),
+              ),
+              padding: const EdgeInsets.all(0),
+              child: Text(topHeaderColumns[x].displayName),
+            ),
+          ),
+        ),
+      );
+    }
+    Widget headerRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: cellsInHeaderRow,
+    );
+    return headerRow;
+  }
+
   Widget buildHeaderRow() {
     List<Widget> cellsInHeaderRow = [];
     for (int x = 0; x < columnCount(); x++) {
       cellsInHeaderRow.add(
         SizedBox(
           width: columnWidth(x),
-          height: 50,
+          height: 30,
           child: Padding(
             padding: const EdgeInsets.all(0),
             child: Text(columns[x].displayName),

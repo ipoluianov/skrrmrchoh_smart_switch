@@ -21,8 +21,8 @@ class CellEditorSelect extends CellEditor {
 class CellEditorSelectItem {
   LogicalKeyboardKey? shortcut;
   String value;
-  String displayName;
-  CellEditorSelectItem(this.value, this.displayName, this.shortcut);
+  //String displayName;
+  CellEditorSelectItem(this.value, this.shortcut);
 }
 
 class CellEditorSelectState extends State<CellEditorSelect> {
@@ -33,7 +33,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
     super.initState();
 
     for (int i = 0; i < widget.items.length; i++) {
-      if (widget.items[i].value == widget.cell.content) {
+      if (widget.items[i].value == widget.cell.value) {
         currentIndex = i;
         Timer.run(() {
           scrollToItemY(currentIndex);
@@ -82,7 +82,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
   }
 
   void selectItem(int index) {
-    widget.cell.content = widget.items[index].value;
+    widget.cell.value = widget.items[index].value;
     widget.cell.closeEditor();
   }
 
@@ -116,7 +116,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
             color: col,
             padding: const EdgeInsets.all(3),
             child: Text(
-              item.displayName,
+              widget.cell.displayNameSource(item.value),
               style: const TextStyle(fontSize: 20),
             ),
           ),

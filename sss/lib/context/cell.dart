@@ -4,15 +4,34 @@ import 'package:sss/context/cell_editor.dart';
 import 'package:sss/context/cell_editor_select.dart';
 import 'package:sss/context/cell_editor_text.dart';
 
+class CellShortcut {
+  final LogicalKeyboardKey key;
+  final String value;
+  const CellShortcut(this.key, this.value);
+}
+
 class Cell {
+  Cell(this.x, this.y, this.value) {
+    displayNameSource = (String v) {
+      return value;
+    };
+  }
+
   String id = UniqueKey().toString();
   int x = 0;
   int y = 0;
-  String content = "";
+  String value = "";
+  String defaultValue = "!#NO#!";
+
+  List<CellShortcut> shortcuts = [];
 
   bool hover = false;
 
   List<CellEditorSelectItem> options = [];
+  void addOption(String value, LogicalKeyboardKey? shortcut) {
+    var item = CellEditorSelectItem(value, shortcut);
+    options.add(item);
+  }
 
   CellBorder borderLeft = CellBorder();
   CellBorder borderRight = CellBorder();
@@ -26,6 +45,10 @@ class Cell {
   int cellEditorType = cellEditorTypeNone;
 
   Function onNeedCloseEditor = () {};
+
+  String Function(String) displayNameSource = (String v) {
+    return "";
+  };
 
   void closeEditor() {
     onNeedCloseEditor();
@@ -52,10 +75,8 @@ class Cell {
   }
 
   Widget buildViewer() {
-    return Text(content);
+    return Text(displayNameSource(value));
   }
-
-  Cell(this.x, this.y, this.content);
 
   bool Function(RawKeyDownEvent event) onKeyDownEvent = (ev) {
     return false;

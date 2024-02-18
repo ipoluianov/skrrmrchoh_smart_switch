@@ -34,35 +34,180 @@ class Context {
           if (x == 3) {
             cell.cellEditorType = Cell.cellEditorTypeSelect;
             cell.options = [
-              CellEditorSelectItem(
-                  "1", "1. --- 111 ---", LogicalKeyboardKey.digit1),
-              CellEditorSelectItem(
-                  "2", "2. Реле номер пять", LogicalKeyboardKey.digit2),
-              CellEditorSelectItem(
-                  "3", "3. Входная дверь1", LogicalKeyboardKey.digit3),
-              CellEditorSelectItem("4", "4. Входная дверь2", null),
-              CellEditorSelectItem("5", "5. Входная дверь3", null),
-              CellEditorSelectItem("6", "6. Входная дверь4", null),
-              CellEditorSelectItem("7", "7. Входная дверь5", null),
-              CellEditorSelectItem("8", "8. Входная дверь6", null),
-              CellEditorSelectItem("9", "9. Входная дверь7", null),
-              CellEditorSelectItem("10", "10. Входная дверь8", null),
-              CellEditorSelectItem("11", "11. Входная дверь9", null),
+              CellEditorSelectItem("1", LogicalKeyboardKey.digit1),
+              CellEditorSelectItem("2", LogicalKeyboardKey.digit2),
+              CellEditorSelectItem("3", LogicalKeyboardKey.digit3),
+              CellEditorSelectItem("4", null),
+              CellEditorSelectItem("5", null),
+              CellEditorSelectItem("6", null),
+              CellEditorSelectItem("7", null),
+              CellEditorSelectItem("8", null),
+              CellEditorSelectItem("9", null),
+              CellEditorSelectItem("10", null),
+              CellEditorSelectItem("11", null),
             ];
           }
         }
       }
     }
-    {
-      var doc = addSheet();
-      doc.displayName = "Relay View";
-      for (int y = 0; y < 5; y++) {
-        for (int x = 0; x < 5; x++) {
-          doc.setCell(x, y, "111");
+    createRelayView();
+  }
+
+  void createRelayView() {
+    var doc = addSheet();
+    doc.displayName = "Relay View";
+
+    doc.addTopHeaderColumn("", 200);
+
+    doc.addColumn("Реле", 200);
+
+    doc.addTopHeaderColumn("Включение по", 210);
+    doc.addColumn("фронту", 60);
+    doc.addColumn("выключателя", 150);
+
+    doc.addTopHeaderColumn("Отключение по", 210);
+    doc.addColumn("фронту", 60);
+    doc.addColumn("выключателя", 150);
+
+    doc.addTopHeaderColumn("Включение по", 210);
+    doc.addColumn("фронту", 60);
+    doc.addColumn("реле", 150);
+
+    doc.addTopHeaderColumn("Отключение по", 210);
+    doc.addColumn("фронту", 60);
+    doc.addColumn("реле", 150);
+
+    doc.addTopHeaderColumn("Включение по времени", 200);
+    doc.addColumn("Часы", 100);
+    doc.addColumn("Минуты", 100);
+
+    doc.addTopHeaderColumn("Отключение по времени", 120);
+    doc.addColumn("Часы", 60);
+    doc.addColumn("Минуты", 60);
+
+    for (int ri = 0; ri < 16; ri++) {
+      int countPerRelay = 8;
+      for (int i = 0; i < countPerRelay; i++) {
+        int y = ri * countPerRelay + i;
+        if (i == 0) {
+          Cell cell = doc.setCell(0, y, "Реле №$ri");
+          cell.cellEditorType = Cell.cellEditorTypeText;
+        } else {
+          Cell cell = doc.setCell(0, y, "");
+        }
+        {
+          Cell cell = doc.setCell(1, y, "-");
+          cell.defaultValue = "-";
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          cell.addOption("-", null);
+          cell.addOption("0", null);
+          cell.addOption("1", null);
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit2, "0"));
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit1, "1"));
+          cell.displayNameSource = displayNameOnOff;
+        }
+        {
+          Cell cell = doc.setCell(2, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          for (int i = 0; i < 24; i++) {
+            cell.addOption("$i", null);
+          }
+          cell.displayNameSource = displayNameSwitch;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(3, y, "-");
+          cell.defaultValue = "-";
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          cell.addOption("-", null);
+          cell.addOption("0", null);
+          cell.addOption("1", null);
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit2, "0"));
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit1, "1"));
+          cell.displayNameSource = displayNameOnOff;
+        }
+        {
+          Cell cell = doc.setCell(4, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          for (int i = 0; i < 24; i++) {
+            cell.addOption("$i", null);
+          }
+          cell.displayNameSource = displayNameSwitch;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(5, y, "-");
+          cell.defaultValue = "-";
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          cell.addOption("-", null);
+          cell.addOption("0", null);
+          cell.addOption("1", null);
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit2, "0"));
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit1, "1"));
+          cell.displayNameSource = displayNameOnOff;
+        }
+        {
+          Cell cell = doc.setCell(6, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          for (int i = 0; i < 16; i++) {
+            cell.addOption("$i", null);
+          }
+          cell.displayNameSource = displayNameRelay;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(7, y, "-");
+          cell.defaultValue = "-";
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          cell.addOption("-", null);
+          cell.addOption("0", null);
+          cell.addOption("1", null);
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit2, "0"));
+          cell.shortcuts
+              .add(const CellShortcut(LogicalKeyboardKey.digit1, "1"));
+          cell.displayNameSource = displayNameOnOff;
+        }
+        {
+          Cell cell = doc.setCell(8, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeSelect;
+          for (int i = 0; i < 16; i++) {
+            cell.addOption("$i", null);
+          }
+          cell.displayNameSource = displayNameRelay;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(9, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeText;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(10, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeText;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(11, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeText;
+          cell.defaultValue = "-";
+        }
+        {
+          Cell cell = doc.setCell(12, y, "-");
+          cell.cellEditorType = Cell.cellEditorTypeText;
+          cell.defaultValue = "-";
         }
       }
     }
   }
+
+  void updateSwitchOptionsOnCell(Cell cell) {}
 
   Sheet addSheet() {
     Sheet doc = Sheet();
@@ -75,6 +220,33 @@ class Context {
       onDefaultFocus();
     };
     return doc;
+  }
+
+  String displayNameOnOff(String v) {
+    if (v == "-") {
+      return "-";
+    }
+    if (v == "0") {
+      return "ОТКЛ";
+    }
+    if (v == "1") {
+      return "ВКЛ";
+    }
+    return v;
+  }
+
+  String displayNameSwitch(String v) {
+    if (v == "-") {
+      return "-";
+    }
+    return "выключатель №$v";
+  }
+
+  String displayNameRelay(String v) {
+    if (v == "-") {
+      return "-";
+    }
+    return "реле №$v";
   }
 
   Function onUpdate = () {};
