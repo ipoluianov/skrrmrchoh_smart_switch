@@ -33,10 +33,10 @@ class Cell {
     options.add(item);
   }
 
-  CellBorder borderLeft = CellBorder();
-  CellBorder borderRight = CellBorder();
-  CellBorder borderTop = CellBorder();
-  CellBorder borderBottom = CellBorder();
+  CellBorder borderLeft = CellBorder(1, Colors.transparent);
+  CellBorder borderRight = CellBorder(1, Colors.transparent);
+  CellBorder borderTop = CellBorder(1, Colors.transparent);
+  CellBorder borderBottom = CellBorder(1, Colors.transparent);
 
   static const cellEditorTypeNone = 0;
   static const cellEditorTypeText = 1;
@@ -49,6 +49,9 @@ class Cell {
   String Function(String) displayNameSource = (String v) {
     return "";
   };
+
+  String action = "";
+  Function(String) onAction = (String a) {};
 
   void closeEditor() {
     onNeedCloseEditor();
@@ -75,7 +78,35 @@ class Cell {
   }
 
   Widget buildViewer() {
-    return Text(displayNameSource(value));
+    if (action.isNotEmpty) {
+      return Padding(
+        padding: EdgeInsets.all(3),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              width: 2,
+              color: Colors.blue,
+            ),
+            borderRadius: BorderRadius.circular(3),
+            color: Colors.blueAccent,
+          ),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Center(
+              child: Text(
+                displayNameSource(value),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return MouseRegion(
+      cursor: SystemMouseCursors.basic,
+      child: Text(
+        displayNameSource(value),
+      ),
+    );
   }
 
   bool Function(RawKeyDownEvent event) onKeyDownEvent = (ev) {
@@ -90,4 +121,5 @@ class Cell {
 class CellBorder {
   double width = 2;
   Color color = Colors.transparent;
+  CellBorder(this.width, this.color);
 }

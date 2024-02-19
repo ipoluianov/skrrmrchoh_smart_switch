@@ -70,6 +70,13 @@ class Sheet {
         }
       }
 
+      if (event.logicalKey == LogicalKeyboardKey.space) {
+        if (cell.action.isNotEmpty) {
+          cell.onAction(cell.action);
+          processed = true;
+        }
+      }
+
       for (var item in cell.shortcuts) {
         if (item.key == event.logicalKey) {
           cell.value = item.value;
@@ -255,10 +262,10 @@ class Sheet {
               padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
                 border: Border(
-                  left: borderSideCommon,
-                  top: borderSideCommon,
-                  //left: borderSideCommon,
-                ),
+                    //left: borderSideCommon,
+                    //top: borderSideCommon,
+                    //left: borderSideCommon,
+                    ),
               ),
               child: widget,
             ),
@@ -353,7 +360,7 @@ class Sheet {
   BoxBorder buildCellBorder(Cell cell) {
     BoxBorder border = Border.all(width: 0, color: Colors.transparent);
     if (cell.x == currentX && cell.y == currentY) {
-      border = Border.all(width: 2, color: Colors.blue);
+      border = Border.all(width: 1, color: Colors.blue);
     } else {
       border = Border(
         left: BorderSide(

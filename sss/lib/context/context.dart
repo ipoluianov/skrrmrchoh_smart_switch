@@ -91,10 +91,13 @@ class Context {
       int countPerRelay = 8;
       for (int i = 0; i < countPerRelay; i++) {
         int y = ri * countPerRelay + i;
-        CellBorder borderTop = CellBorder();
+        CellBorder borderTop = CellBorder(1, Colors.white38);
+        CellBorder borderLeft = CellBorder(1, Colors.white38);
+        CellBorder borderRight = CellBorder(1, Colors.transparent);
+        CellBorder borderBottom = CellBorder(1, Colors.transparent);
         if (i == 0) {
-          borderTop.color = Colors.white54;
-          borderTop.width = 2;
+          borderTop.color = Colors.white70;
+          borderTop.width = 1;
         }
         switch (i) {
           case 0:
@@ -102,6 +105,9 @@ class Context {
               Cell cell = doc.setCell(0, y, "Реле №$ri");
               cell.cellEditorType = Cell.cellEditorTypeText;
               cell.borderTop = borderTop;
+              cell.borderLeft = borderLeft;
+              //cell.borderBottom = borderBottom;
+              //cell.borderRight = borderRight;
             }
             break;
           case 1:
@@ -109,16 +115,51 @@ class Context {
               Cell cell = doc.setCell(0, y, "relay-state:$ri");
               cell.cellEditorType = Cell.cellEditorTypeText;
               cell.displayNameSource = actualValue;
+              //cell.borderTop = borderTop;
+              cell.borderLeft = borderLeft;
+              //cell.borderBottom = borderBottom;
+              //cell.borderRight = borderRight;
+            }
+            break;
+          case 2:
+            {
+              Cell cell = doc.setCell(0, y, "Включить");
+              //cell.cellEditorType = Cell.cellEditorTypeText;
+              /*cell.borderTop = CellBorder(1, Colors.blue);
+              cell.borderLeft = CellBorder(1, Colors.blue);
+              cell.borderBottom = CellBorder(1, Colors.blue);
+              cell.borderRight = CellBorder(1, Colors.blue);*/
+              cell.action = "on:$ri";
+              //cell.onAction =
+            }
+            break;
+          case 3:
+            {
+              Cell cell = doc.setCell(0, y, "Отключить");
+              //cell.cellEditorType = Cell.cellEditorTypeText;
+              /*cell.borderTop = CellBorder(1, Colors.blue);
+              cell.borderLeft = CellBorder(1, Colors.blue);
+              cell.borderBottom = CellBorder(1, Colors.blue);
+              cell.borderRight = CellBorder(1, Colors.blue);*/
+              cell.action = "on:$ri";
+              //cell.onAction =
             }
             break;
           default:
             Cell cell = doc.setCell(0, y, "");
+            //cell.borderTop = borderTop;
+            cell.borderLeft = borderLeft;
+            //cell.borderBottom = borderBottom;
+            //cell.borderRight = borderRight;
             break;
         }
 
         {
           Cell cell = doc.setCell(1, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.defaultValue = "";
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           cell.addOption("", null);
@@ -133,6 +174,9 @@ class Context {
         {
           Cell cell = doc.setCell(2, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           for (int i = 0; i < 24; i++) {
             cell.addOption("$i", null);
@@ -143,6 +187,9 @@ class Context {
         {
           Cell cell = doc.setCell(3, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.defaultValue = "";
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           cell.addOption("", null);
@@ -157,6 +204,9 @@ class Context {
         {
           Cell cell = doc.setCell(4, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           for (int i = 0; i < 24; i++) {
             cell.addOption("$i", null);
@@ -167,6 +217,9 @@ class Context {
         {
           Cell cell = doc.setCell(5, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.defaultValue = "";
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           cell.addOption("", null);
@@ -181,6 +234,9 @@ class Context {
         {
           Cell cell = doc.setCell(6, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           for (int i = 0; i < 16; i++) {
             cell.addOption("$i", null);
@@ -191,6 +247,9 @@ class Context {
         {
           Cell cell = doc.setCell(7, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.defaultValue = "";
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           cell.addOption("", null);
@@ -205,6 +264,9 @@ class Context {
         {
           Cell cell = doc.setCell(8, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeSelect;
           for (int i = 0; i < 16; i++) {
             cell.addOption("$i", null);
@@ -215,24 +277,36 @@ class Context {
         {
           Cell cell = doc.setCell(9, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeText;
           cell.defaultValue = "";
         }
         {
           Cell cell = doc.setCell(10, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeText;
           cell.defaultValue = "";
         }
         {
           Cell cell = doc.setCell(11, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeText;
           cell.defaultValue = "";
         }
         {
           Cell cell = doc.setCell(12, y, "");
           cell.borderTop = borderTop;
+          cell.borderLeft = borderLeft;
+          cell.borderBottom = borderBottom;
+          cell.borderRight = borderRight;
           cell.cellEditorType = Cell.cellEditorTypeText;
           cell.defaultValue = "";
         }
