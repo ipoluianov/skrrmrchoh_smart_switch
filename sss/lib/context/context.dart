@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor_select.dart';
+import 'package:sss/settings.dart';
 
 import 'cell.dart';
 import 'sheet.dart';
@@ -91,12 +92,12 @@ class Context {
       int countPerRelay = 8;
       for (int i = 0; i < countPerRelay; i++) {
         int y = ri * countPerRelay + i;
-        CellBorder borderTop = CellBorder(1, Colors.white38);
-        CellBorder borderLeft = CellBorder(1, Colors.white38);
+        CellBorder borderTop = CellBorder(1, Settings.borderColor);
+        CellBorder borderLeft = CellBorder(1, Settings.borderColor);
         CellBorder borderRight = CellBorder(1, Colors.transparent);
         CellBorder borderBottom = CellBorder(1, Colors.transparent);
         if (i == 0) {
-          borderTop.color = Colors.white70;
+          borderTop.color = Settings.borderColor;
           borderTop.width = 1;
         }
         switch (i) {
@@ -403,9 +404,9 @@ class Context {
   }
 
   Widget buildButton(BuildContext context, int index) {
-    Color col = Colors.white24;
+    Color col = Settings.backColor;
     if (index == currentDocIndex) {
-      col = Colors.blue;
+      col = Settings.selectionColor;
     }
     Sheet doc = docs[index];
     return MouseRegion(
@@ -421,7 +422,7 @@ class Context {
           decoration: BoxDecoration(
             color: col,
             border: Border.all(
-              color: Colors.white,
+              color: Settings.borderColor,
             ),
           ),
           child: Center(

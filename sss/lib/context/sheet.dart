@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../settings.dart';
 import 'cell.dart';
 import 'cell_editor.dart';
 import 'col.dart';
@@ -240,9 +241,6 @@ class Sheet {
     int cs = columnCount();
     List<Widget> rows = [];
 
-    BorderSide borderSideCommon =
-        const BorderSide(width: 1, color: Colors.white10);
-
     for (int y = 0; y < rs; y++) {
       List<Widget> cellsInRow = [];
       for (int x = 0; x < cs; x++) {
@@ -260,13 +258,6 @@ class Sheet {
             height: rowHeight(y),
             child: Container(
               padding: const EdgeInsets.all(0),
-              decoration: BoxDecoration(
-                border: Border(
-                    //left: borderSideCommon,
-                    //top: borderSideCommon,
-                    //left: borderSideCommon,
-                    ),
-              ),
               child: widget,
             ),
           ),
@@ -339,9 +330,8 @@ class Sheet {
     // - edit dialog
     return Stack(
       children: [
-        Container(
+        SizedBox(
           width: viewportWidth,
-          color: Colors.yellow.withOpacity(0.1),
           child: Scrollbar(
             controller: hController,
             thumbVisibility: true,
@@ -360,7 +350,7 @@ class Sheet {
   BoxBorder buildCellBorder(Cell cell) {
     BoxBorder border = Border.all(width: 0, color: Colors.transparent);
     if (cell.x == currentX && cell.y == currentY) {
-      border = Border.all(width: 1, color: Colors.blue);
+      border = Border.all(width: 1, color: Settings.selectionColor);
     } else {
       border = Border(
         left: BorderSide(
@@ -406,7 +396,7 @@ class Sheet {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: Settings.backColor,
               border: buildCellBorder(cell),
             ),
             child: cell.buildViewer(),
@@ -450,7 +440,7 @@ class Sheet {
                 border: Border(
                   bottom: BorderSide(
                     width: 1,
-                    color: Colors.white30,
+                    color: Settings.borderColor,
                   ),
                 ),
               ),
@@ -499,7 +489,7 @@ class Sheet {
         child: Container(
           width: width,
           height: height,
-          color: Colors.black38,
+          color: Settings.backColor,
           child: cell.buildEditor(columns[currentX].displayName, () {
             editing_ = false;
           }),

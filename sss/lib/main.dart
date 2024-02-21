@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sss/mainform/mainform.dart';
+import 'package:sss/settings.dart';
 
 void main() {
+  Settings.setLight();
   runApp(const MyApp());
 }
 
@@ -14,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        brightness: Brightness.dark,
+        brightness: Settings.brightness,
         primarySwatch: Colors.blue,
       ),
       home: const MainForm(),
