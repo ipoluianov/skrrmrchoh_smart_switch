@@ -103,8 +103,12 @@ class Cell {
     }
     return MouseRegion(
       cursor: SystemMouseCursors.basic,
-      child: Text(
-        displayNameSource(value),
+      child: Row(
+        children: [
+          Text(
+            displayNameSource(value),
+          ),
+        ],
       ),
     );
   }

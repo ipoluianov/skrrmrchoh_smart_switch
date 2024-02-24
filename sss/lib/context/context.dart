@@ -92,13 +92,25 @@ class Context {
       int countPerRelay = 8;
       for (int i = 0; i < countPerRelay; i++) {
         int y = ri * countPerRelay + i;
-        CellBorder borderTop = CellBorder(1, Settings.borderColor);
-        CellBorder borderLeft = CellBorder(1, Settings.borderColor);
-        CellBorder borderRight = CellBorder(1, Colors.transparent);
-        CellBorder borderBottom = CellBorder(1, Colors.transparent);
+        CellBorder borderTop = CellBorder(
+          Settings.borderWidth,
+          Settings.borderColor,
+        );
+        CellBorder borderLeft = CellBorder(
+          Settings.borderWidth,
+          Settings.borderColor,
+        );
+        CellBorder borderRight = CellBorder(
+          Settings.borderWidth,
+          Colors.transparent,
+        );
+        CellBorder borderBottom = CellBorder(
+          Settings.borderWidth,
+          Colors.transparent,
+        );
         if (i == 0) {
           borderTop.color = Settings.borderColor;
-          borderTop.width = 1;
+          borderTop.width = Settings.borderWidth;
         }
         switch (i) {
           case 0:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sss/settings.dart';
 
 import 'cell.dart';
 import 'cell_editor.dart';
@@ -40,23 +41,23 @@ class CellEditorTextState extends State<CellEditorText> {
       style: const TextStyle(
         fontSize: 12,
       ),
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.black,
-        contentPadding: EdgeInsets.all(0),
-        enabledBorder: OutlineInputBorder(
+        fillColor: Settings.backColor,
+        contentPadding: const EdgeInsets.all(0),
+        enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(
             color: Colors.transparent,
             width: 0,
           ),
         ),
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderSide: BorderSide(
             color: Colors.transparent,
             width: 0,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(
             color: Colors.transparent,
             width: 0,

@@ -350,7 +350,10 @@ class Sheet {
   BoxBorder buildCellBorder(Cell cell) {
     BoxBorder border = Border.all(width: 0, color: Colors.transparent);
     if (cell.x == currentX && cell.y == currentY) {
-      border = Border.all(width: 1, color: Settings.selectionColor);
+      border = Border.all(
+        width: Settings.borderWidth,
+        color: Settings.selectionColor,
+      );
     } else {
       border = Border(
         left: BorderSide(
@@ -445,7 +448,12 @@ class Sheet {
                 ),
               ),
               padding: const EdgeInsets.all(0),
-              child: Text(topHeaderColumns[x].displayName),
+              child: Text(
+                topHeaderColumns[x].displayName,
+                style: TextStyle(
+                  color: Settings.textColor,
+                ),
+              ),
             ),
           ),
         ),
@@ -467,7 +475,12 @@ class Sheet {
           height: 30,
           child: Padding(
             padding: const EdgeInsets.all(0),
-            child: Text(columns[x].displayName),
+            child: Text(
+              columns[x].displayName,
+              style: TextStyle(
+                color: Settings.textColor,
+              ),
+            ),
           ),
         ),
       );

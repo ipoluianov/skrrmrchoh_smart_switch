@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/context.dart';
+import 'package:sss/settings.dart';
 
 class MainForm extends StatefulWidget {
   const MainForm({super.key});
@@ -70,7 +71,7 @@ class MainFormState extends State<MainForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.black,
+        color: Settings.backColor,
         child: Container(
           child: buildContent(context),
         ),
