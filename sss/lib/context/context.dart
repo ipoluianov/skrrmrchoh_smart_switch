@@ -12,6 +12,9 @@ class Context {
     createEEPROMView();
   }
 
+  static const int relayViewSheetIndex = 0;
+  static const int eepromSheetIndex = 1;
+
   void createEEPROMView() {
     var doc = addSheet();
     doc.addColumn("Index", 60);
@@ -126,7 +129,7 @@ class Context {
           case 1:
             {
               Cell cell = doc.setCell(0, y, "relay-state:$ri");
-              cell.cellEditorType = Cell.cellEditorTypeText;
+              cell.cellEditorType = Cell.cellEditorTypeNone;
               cell.displayNameSource = actualValue;
               //cell.borderTop = borderTop;
               cell.borderLeft = borderLeft;
@@ -327,6 +330,141 @@ class Context {
     }
   }
 
+  String formatValue(int v) {
+    return v.toRadixString(16).padLeft(2, '0').toUpperCase();
+  }
+
+  void clearEEPROM() {
+    var shEEPROM = docs[eepromSheetIndex];
+    for (int i = 0; i < 64; i++) {
+      shEEPROM.getCell(0, i).value = formatValue(i);
+      for (int ii = 1; ii < 11; ii++) {
+        shEEPROM.getCell(ii, i).value = formatValue(0xFF);
+      }
+    }
+  }
+
+  void compileEEPROM() {
+    clearEEPROM();
+    var shRelayView = docs[relayViewSheetIndex];
+    var shEEPROM = docs[eepromSheetIndex];
+    int eIndex = 0;
+    for (int ri = 0; ri < 16; ri++) {
+      int countPerRelay = 8;
+      for (int i = 0; i < countPerRelay; i++) {
+        var y = ri * countPerRelay + i;
+        var swonFront = shRelayView.getCell(1, y).value;
+        var swonSwitch = shRelayView.getCell(2, y).value;
+        var swoffFront = shRelayView.getCell(3, y).value;
+        var swoffSwitch = shRelayView.getCell(4, y).value;
+        var rlonFront = shRelayView.getCell(5, y).value;
+        var rlonRelay = shRelayView.getCell(6, y).value;
+        var rloffFront = shRelayView.getCell(7, y).value;
+        var rloffRelay = shRelayView.getCell(8, y).value;
+        var tOnH = shRelayView.getCell(9, y).value;
+        var tOnM = shRelayView.getCell(10, y).value;
+        var tOffH = shRelayView.getCell(11, y).value;
+        var tOffM = shRelayView.getCell(12, y).value;
+        bool isEmpty = swonFront.isEmpty &
+            swonSwitch.isEmpty &
+            swoffFront.isEmpty &
+            swoffSwitch.isEmpty &
+            rlonFront.isEmpty &
+            rlonRelay.isEmpty &
+            rloffFront.isEmpty &
+            rloffRelay.isEmpty &
+            tOnH.isEmpty &
+            tOnM.isEmpty &
+            tOffH.isEmpty &
+            tOffM.isEmpty;
+
+        bool swonValid = false;
+        bool swonExists = false;
+        int swonFrontByte = 0xFF;
+        int swonSwitchByte = 0xFF;
+        if (swonFront.isEmpty && swonSwitch.isEmpty) {
+          swonValid = true;
+        }
+        if (swonFront.isNotEmpty && swonSwitch.isNotEmpty) {
+          swonExists = true;
+          swonFrontByte = int.tryParse(swonFront, radix: 10) ?? 0xFF;
+          swonSwitchByte = int.tryParse(swonSwitch, radix: 10) ?? 0xFF;
+          if (swonFrontByte == 0xFF || swonSwitchByte == 0xFF) {
+            swonFrontByte = 0xFF;
+            swonSwitchByte = 0xFF;
+          }
+          swonValid = swonFrontByte != 0xFF && swonFrontByte != 0xFF;
+          if (swonValid) {
+            shEEPROM.getCell(0, eIndex).value =
+                eIndex.toRadixString(16).padLeft(2, '0').toUpperCase();
+            shEEPROM.getCell(1, eIndex).value =
+                ri.toRadixString(16).padLeft(2, '0').toUpperCase();
+            shEEPROM.getCell(2, eIndex).value =
+                0.toRadixString(16).padLeft(2, '0').toUpperCase();
+            if (swonFrontByte == 0x00) {
+              shEEPROM.getCell(3, eIndex).value = swonSwitchByte
+                  .toRadixString(16)
+                  .padLeft(2, '0')
+                  .toUpperCase();
+            }
+            if (swonFrontByte == 0x01) {
+              shEEPROM.getCell(4, eIndex).value = swonSwitchByte
+                  .toRadixString(16)
+                  .padLeft(2, '0')
+                  .toUpperCase();
+            }
+            eIndex++;
+          }
+        }
+
+        bool swoffValid = false;
+        bool swoffExists = false;
+        int swoffFrontByte = 0xFF;
+        int swoffSwitchByte = 0xFF;
+        if (swoffFront.isEmpty && swoffSwitch.isEmpty) {
+          swoffValid = true;
+        }
+        if (swoffFront.isNotEmpty && swoffSwitch.isNotEmpty) {
+          swoffExists = true;
+          swoffFrontByte = int.tryParse(swoffFront, radix: 10) ?? 0xFF;
+          swoffSwitchByte = int.tryParse(swoffSwitch, radix: 10) ?? 0xFF;
+          if (swoffFrontByte == 0xFF || swoffSwitchByte == 0xFF) {
+            swoffFrontByte = 0xFF;
+            swoffSwitchByte = 0xFF;
+          }
+          swoffValid = swoffFrontByte != 0xFF && swoffFrontByte != 0xFF;
+          if (swonValid) {
+            shEEPROM.getCell(0, eIndex).value =
+                eIndex.toRadixString(16).padLeft(2, '0').toUpperCase();
+            shEEPROM.getCell(1, eIndex).value =
+                ri.toRadixString(16).padLeft(2, '0').toUpperCase();
+            shEEPROM.getCell(2, eIndex).value =
+                1.toRadixString(16).padLeft(2, '0').toUpperCase();
+            if (swoffFrontByte == 0x00) {
+              shEEPROM.getCell(3, eIndex).value = swoffSwitchByte
+                  .toRadixString(16)
+                  .padLeft(2, '0')
+                  .toUpperCase();
+            }
+            if (swoffFrontByte == 0x01) {
+              shEEPROM.getCell(4, eIndex).value = swoffSwitchByte
+                  .toRadixString(16)
+                  .padLeft(2, '0')
+                  .toUpperCase();
+            }
+            eIndex++;
+          }
+        }
+
+        bool needAddRow = false;
+        if (swonExists && swonValid) needAddRow = true;
+        if (swoffExists && swoffValid) needAddRow = true;
+
+        if (needAddRow) {}
+      }
+    }
+  }
+
   void updateSwitchOptionsOnCell(Cell cell) {}
 
   Sheet addSheet() {
@@ -395,6 +533,9 @@ class Context {
   bool processedLastKey = false;
 
   void notifyChanges() {
+    if (currentDocIndex == relayViewSheetIndex) {
+      compileEEPROM();
+    }
     onUpdate();
   }
 
