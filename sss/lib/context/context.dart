@@ -344,11 +344,72 @@ class Context {
     }
   }
 
+  int compileEEPROMIndex = -1;
+
+  void addEvent(int relayIndex, int action, int column, int value) {
+    var shEEPROM = docs[eepromSheetIndex];
+    String valueStr = formatValue(value);
+    bool hasSet = false;
+    for (int i = 0; i <= compileEEPROMIndex; i++) {
+      int? rIndex = shEEPROM.getCellValue(1, i);
+      int? aIndex = shEEPROM.getCellValue(2, i);
+      int? v = shEEPROM.getCellValue(column, i);
+      if (relayIndex == rIndex && action == aIndex) {
+        if (v == 0xFF) {
+          shEEPROM.getCell(column, i).value = valueStr;
+          hasSet = true;
+        }
+      }
+    }
+
+    if (!hasSet) {
+      if (compileEEPROMIndex < 63) {
+        compileEEPROMIndex++;
+        shEEPROM.getCell(0, compileEEPROMIndex).value =
+            formatValue(compileEEPROMIndex);
+        shEEPROM.getCell(1, compileEEPROMIndex).value = formatValue(relayIndex);
+        shEEPROM.getCell(2, compileEEPROMIndex).value = formatValue(action);
+        shEEPROM.getCell(column, compileEEPROMIndex).value = valueStr;
+      }
+    }
+  }
+
+  void addEventTime(int relayIndex, int action, int column, int h, int m) {
+    var shEEPROM = docs[eepromSheetIndex];
+    String valueHStr = formatValue(h);
+    String valueMStr = formatValue(m);
+    bool hasSet = false;
+    for (int i = 0; i <= compileEEPROMIndex; i++) {
+      int? rIndex = shEEPROM.getCellValue(1, i);
+      int? aIndex = shEEPROM.getCellValue(2, i);
+      int? vH = shEEPROM.getCellValue(column, i);
+      int? vM = shEEPROM.getCellValue(column + 1, i);
+      if (relayIndex == rIndex && action == aIndex) {
+        if (vH == 0xFF && vM == 0xFF) {
+          shEEPROM.getCell(column, i).value = valueHStr;
+          shEEPROM.getCell(column + 1, i).value = valueMStr;
+          hasSet = true;
+        }
+      }
+    }
+
+    if (!hasSet) {
+      if (compileEEPROMIndex < 63) {
+        compileEEPROMIndex++;
+        shEEPROM.getCell(0, compileEEPROMIndex).value =
+            formatValue(compileEEPROMIndex);
+        shEEPROM.getCell(1, compileEEPROMIndex).value = formatValue(relayIndex);
+        shEEPROM.getCell(2, compileEEPROMIndex).value = formatValue(action);
+        shEEPROM.getCell(column, compileEEPROMIndex).value = valueHStr;
+        shEEPROM.getCell(column + 1, compileEEPROMIndex).value = valueMStr;
+      }
+    }
+  }
+
   void compileEEPROM() {
+    compileEEPROMIndex = -1;
     clearEEPROM();
     var shRelayView = docs[relayViewSheetIndex];
-    var shEEPROM = docs[eepromSheetIndex];
-    int eIndex = 0;
     for (int ri = 0; ri < 16; ri++) {
       int countPerRelay = 8;
       for (int i = 0; i < countPerRelay; i++) {
@@ -361,106 +422,138 @@ class Context {
         var rlonRelay = shRelayView.getCell(6, y).value;
         var rloffFront = shRelayView.getCell(7, y).value;
         var rloffRelay = shRelayView.getCell(8, y).value;
-        var tOnH = shRelayView.getCell(9, y).value;
-        var tOnM = shRelayView.getCell(10, y).value;
-        var tOffH = shRelayView.getCell(11, y).value;
-        var tOffM = shRelayView.getCell(12, y).value;
-        bool isEmpty = swonFront.isEmpty &
-            swonSwitch.isEmpty &
-            swoffFront.isEmpty &
-            swoffSwitch.isEmpty &
-            rlonFront.isEmpty &
-            rlonRelay.isEmpty &
-            rloffFront.isEmpty &
-            rloffRelay.isEmpty &
-            tOnH.isEmpty &
-            tOnM.isEmpty &
-            tOffH.isEmpty &
-            tOffM.isEmpty;
+        var tonH = shRelayView.getCell(9, y).value;
+        var tonM = shRelayView.getCell(10, y).value;
+        var toffH = shRelayView.getCell(11, y).value;
+        var toffM = shRelayView.getCell(12, y).value;
 
         bool swonValid = false;
-        bool swonExists = false;
         int swonFrontByte = 0xFF;
         int swonSwitchByte = 0xFF;
         if (swonFront.isEmpty && swonSwitch.isEmpty) {
           swonValid = true;
         }
         if (swonFront.isNotEmpty && swonSwitch.isNotEmpty) {
-          swonExists = true;
           swonFrontByte = int.tryParse(swonFront, radix: 10) ?? 0xFF;
           swonSwitchByte = int.tryParse(swonSwitch, radix: 10) ?? 0xFF;
           if (swonFrontByte == 0xFF || swonSwitchByte == 0xFF) {
             swonFrontByte = 0xFF;
             swonSwitchByte = 0xFF;
           }
-          swonValid = swonFrontByte != 0xFF && swonFrontByte != 0xFF;
+          swonValid = swonFrontByte != 0xFF && swonSwitchByte != 0xFF;
           if (swonValid) {
-            shEEPROM.getCell(0, eIndex).value =
-                eIndex.toRadixString(16).padLeft(2, '0').toUpperCase();
-            shEEPROM.getCell(1, eIndex).value =
-                ri.toRadixString(16).padLeft(2, '0').toUpperCase();
-            shEEPROM.getCell(2, eIndex).value =
-                0.toRadixString(16).padLeft(2, '0').toUpperCase();
             if (swonFrontByte == 0x00) {
-              shEEPROM.getCell(3, eIndex).value = swonSwitchByte
-                  .toRadixString(16)
-                  .padLeft(2, '0')
-                  .toUpperCase();
+              addEvent(ri, 0, 3, swonSwitchByte);
             }
             if (swonFrontByte == 0x01) {
-              shEEPROM.getCell(4, eIndex).value = swonSwitchByte
-                  .toRadixString(16)
-                  .padLeft(2, '0')
-                  .toUpperCase();
+              addEvent(ri, 0, 4, swonSwitchByte);
             }
-            eIndex++;
           }
         }
+        shRelayView.getCell(1, y).warning = !swonValid;
+        shRelayView.getCell(2, y).warning = !swonValid;
 
         bool swoffValid = false;
-        bool swoffExists = false;
         int swoffFrontByte = 0xFF;
         int swoffSwitchByte = 0xFF;
         if (swoffFront.isEmpty && swoffSwitch.isEmpty) {
           swoffValid = true;
         }
         if (swoffFront.isNotEmpty && swoffSwitch.isNotEmpty) {
-          swoffExists = true;
           swoffFrontByte = int.tryParse(swoffFront, radix: 10) ?? 0xFF;
           swoffSwitchByte = int.tryParse(swoffSwitch, radix: 10) ?? 0xFF;
           if (swoffFrontByte == 0xFF || swoffSwitchByte == 0xFF) {
             swoffFrontByte = 0xFF;
             swoffSwitchByte = 0xFF;
           }
-          swoffValid = swoffFrontByte != 0xFF && swoffFrontByte != 0xFF;
-          if (swonValid) {
-            shEEPROM.getCell(0, eIndex).value =
-                eIndex.toRadixString(16).padLeft(2, '0').toUpperCase();
-            shEEPROM.getCell(1, eIndex).value =
-                ri.toRadixString(16).padLeft(2, '0').toUpperCase();
-            shEEPROM.getCell(2, eIndex).value =
-                1.toRadixString(16).padLeft(2, '0').toUpperCase();
+          swoffValid = swoffFrontByte != 0xFF && swoffSwitchByte != 0xFF;
+          if (swoffValid) {
             if (swoffFrontByte == 0x00) {
-              shEEPROM.getCell(3, eIndex).value = swoffSwitchByte
-                  .toRadixString(16)
-                  .padLeft(2, '0')
-                  .toUpperCase();
+              addEvent(ri, 1, 3, swoffSwitchByte);
             }
             if (swoffFrontByte == 0x01) {
-              shEEPROM.getCell(4, eIndex).value = swoffSwitchByte
-                  .toRadixString(16)
-                  .padLeft(2, '0')
-                  .toUpperCase();
+              addEvent(ri, 1, 4, swoffSwitchByte);
             }
-            eIndex++;
           }
         }
+        shRelayView.getCell(3, y).warning = !swoffValid;
+        shRelayView.getCell(4, y).warning = !swoffValid;
 
-        bool needAddRow = false;
-        if (swonExists && swonValid) needAddRow = true;
-        if (swoffExists && swoffValid) needAddRow = true;
+        // Relays
+        bool rlonValid = false;
+        int rlonFrontByte = 0xFF;
+        int rlonRelayByte = 0xFF;
+        if (rlonFront.isEmpty && rlonRelay.isEmpty) {
+          rlonValid = true;
+        }
+        if (rlonFront.isNotEmpty && rlonRelay.isNotEmpty) {
+          rlonFrontByte = int.tryParse(rlonFront, radix: 10) ?? 0xFF;
+          rlonRelayByte = int.tryParse(rlonRelay, radix: 10) ?? 0xFF;
+          if (rlonFrontByte == 0xFF || rlonRelayByte == 0xFF) {
+            rlonFrontByte = 0xFF;
+            rlonRelayByte = 0xFF;
+          }
+          rlonValid = rlonFrontByte != 0xFF && rlonRelayByte != 0xFF;
+          if (rlonValid) {
+            if (rlonFrontByte == 0x00) {
+              addEvent(ri, 0, 5, rlonRelayByte);
+            }
+            if (rlonFrontByte == 0x01) {
+              addEvent(ri, 0, 6, rlonRelayByte);
+            }
+          }
+        }
+        shRelayView.getCell(5, y).warning = !rlonValid;
+        shRelayView.getCell(6, y).warning = !rlonValid;
 
-        if (needAddRow) {}
+        // Relays
+        bool rloffValid = false;
+        int rloffFrontByte = 0xFF;
+        int rloffRelayByte = 0xFF;
+        if (rloffFront.isEmpty && rloffRelay.isEmpty) {
+          rloffValid = true;
+        }
+        if (rloffFront.isNotEmpty && rloffRelay.isNotEmpty) {
+          rloffFrontByte = int.tryParse(rloffFront, radix: 10) ?? 0xFF;
+          rloffRelayByte = int.tryParse(rloffRelay, radix: 10) ?? 0xFF;
+          if (rloffFrontByte == 0xFF || rloffRelayByte == 0xFF) {
+            rloffFrontByte = 0xFF;
+            rloffRelayByte = 0xFF;
+          }
+          rloffValid = rloffFrontByte != 0xFF && rloffRelayByte != 0xFF;
+          if (rloffValid) {
+            if (rloffFrontByte == 0x00) {
+              addEvent(ri, 1, 5, rloffRelayByte);
+            }
+            if (rloffFrontByte == 0x01) {
+              addEvent(ri, 1, 6, rloffRelayByte);
+            }
+          }
+        }
+        shRelayView.getCell(7, y).warning = !rloffValid;
+        shRelayView.getCell(8, y).warning = !rloffValid;
+
+        // Time
+        bool tonValid = false;
+        int tonHByte = 0xFF;
+        int tonMByte = 0xFF;
+        if (tonH.isEmpty && tonM.isEmpty) {
+          tonValid = true;
+        }
+        if (tonH.isNotEmpty && tonM.isNotEmpty) {
+          tonHByte = int.tryParse(tonH, radix: 10) ?? 0xFF;
+          tonMByte = int.tryParse(tonM, radix: 10) ?? 0xFF;
+          if (tonHByte == 0xFF || tonMByte == 0xFF) {
+            tonHByte = 0xFF;
+            tonHByte = 0xFF;
+          }
+          tonValid = tonHByte != 0xFF && tonMByte != 0xFF;
+          if (tonValid) {
+            addEventTime(ri, 0, 8, tonHByte, tonMByte);
+          }
+        }
+        shRelayView.getCell(9, y).warning = !tonValid;
+        shRelayView.getCell(10, y).warning = !tonValid;
       }
     }
   }

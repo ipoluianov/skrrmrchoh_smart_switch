@@ -42,6 +42,32 @@ class Sheet {
     onDefaultFocus();
   }
 
+  bool isLetter(LogicalKeyboardKey key) {
+    var ku = key.keyLabel.codeUnitAt(0);
+    if (key.keyLabel.length > 1) {
+      return false;
+    }
+    var kua = 'a'.codeUnitAt(0);
+    var kuz = 'z'.codeUnitAt(0);
+    var kuA = 'A'.codeUnitAt(0);
+    var kuZ = 'Z'.codeUnitAt(0);
+    return (ku >= kua && ku <= kuz) || (ku >= kuA && ku <= kuZ);
+  }
+
+  bool isDigit(LogicalKeyboardKey key) {
+    var ku = key.keyLabel.codeUnitAt(0);
+    if (key.keyLabel.length > 1) {
+      return false;
+    }
+    var ku0 = '0'.codeUnitAt(0);
+    var ku9 = '9'.codeUnitAt(0);
+    return ku >= ku0 && ku <= ku9;
+  }
+
+  bool isLetterOrDigit(LogicalKeyboardKey key) {
+    return isDigit(key) || isLetter(key);
+  }
+
   void setCurrentCell(int x, int y) {
     currentX = x;
     currentY = y;
@@ -62,6 +88,22 @@ class Sheet {
         return cell.processKeyDownEvent(event);
       }
     } else {
+      if (isLetterOrDigit(event.logicalKey)) {
+        processed = true;
+
+        var cell = getCell(currentX, currentY);
+
+        if (cell.cellEditorType != Cell.cellEditorTypeNone) {
+          editing_ = true;
+          if (cell.cellEditorType == Cell.cellEditorTypeText) {
+            cell.textToInitField = event.logicalKey.keyLabel;
+          }
+          if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
+            onShowEditDialog(cell);
+          }
+        }
+      }
+
       if (event.logicalKey == LogicalKeyboardKey.backspace ||
           event.logicalKey == LogicalKeyboardKey.delete) {
         if (cell.defaultValue != "!#NO#!") {
@@ -185,6 +227,15 @@ class Sheet {
       }
     }
     return Cell(x, y, "");
+  }
+
+  int getCellValue(int x, int y) {
+    for (var c in _cells) {
+      if (c.x == x && c.y == y) {
+        return int.tryParse(c.value) ?? 0xFF;
+      }
+    }
+    return 0xFF;
   }
 
   bool dialogEditorIsActive() {

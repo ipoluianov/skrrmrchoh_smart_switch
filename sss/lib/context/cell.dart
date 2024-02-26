@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor.dart';
 import 'package:sss/context/cell_editor_select.dart';
 import 'package:sss/context/cell_editor_text.dart';
+import 'package:sss/settings.dart';
 
 class CellShortcut {
   final LogicalKeyboardKey key;
@@ -22,6 +23,7 @@ class Cell {
   int y = 0;
   String value = "";
   String defaultValue = "!#NO#!";
+  bool warning = false;
 
   List<CellShortcut> shortcuts = [];
 
@@ -45,6 +47,8 @@ class Cell {
   int cellEditorType = cellEditorTypeNone;
 
   Function onNeedCloseEditor = () {};
+
+  String textToInitField = "";
 
   String Function(String) displayNameSource = (String v) {
     return "";
@@ -103,12 +107,15 @@ class Cell {
     }
     return MouseRegion(
       cursor: SystemMouseCursors.basic,
-      child: Row(
-        children: [
-          Text(
-            displayNameSource(value),
-          ),
-        ],
+      child: Container(
+        color: warning ? Colors.redAccent.withOpacity(0.4) : Colors.transparent,
+        child: Row(
+          children: [
+            Text(
+              displayNameSource(value),
+            ),
+          ],
+        ),
       ),
     );
   }
