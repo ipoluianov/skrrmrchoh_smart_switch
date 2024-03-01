@@ -122,8 +122,6 @@ class Context {
               cell.cellEditorType = Cell.cellEditorTypeText;
               cell.borderTop = borderTop;
               cell.borderLeft = borderLeft;
-              //cell.borderBottom = borderBottom;
-              //cell.borderRight = borderRight;
             }
             break;
           case 1:
@@ -131,42 +129,50 @@ class Context {
               Cell cell = doc.setCell(0, y, "relay-state:$ri");
               cell.cellEditorType = Cell.cellEditorTypeNone;
               cell.displayNameSource = actualValue;
-              //cell.borderTop = borderTop;
               cell.borderLeft = borderLeft;
-              //cell.borderBottom = borderBottom;
-              //cell.borderRight = borderRight;
             }
             break;
           case 2:
             {
               Cell cell = doc.setCell(0, y, "Включить");
-              //cell.cellEditorType = Cell.cellEditorTypeText;
-              /*cell.borderTop = CellBorder(1, Colors.blue);
-              cell.borderLeft = CellBorder(1, Colors.blue);
-              cell.borderBottom = CellBorder(1, Colors.blue);
-              cell.borderRight = CellBorder(1, Colors.blue);*/
               cell.action = "on:$ri";
-              //cell.onAction =
             }
             break;
           case 3:
             {
               Cell cell = doc.setCell(0, y, "Отключить");
-              //cell.cellEditorType = Cell.cellEditorTypeText;
-              /*cell.borderTop = CellBorder(1, Colors.blue);
-              cell.borderLeft = CellBorder(1, Colors.blue);
-              cell.borderBottom = CellBorder(1, Colors.blue);
-              cell.borderRight = CellBorder(1, Colors.blue);*/
               cell.action = "on:$ri";
-              //cell.onAction =
+            }
+            break;
+          case 4:
+            {
+              Cell cell = doc.setCell(0, y, "Отключить по таймеру");
+              cell.borderTop = borderTop;
+              cell.borderLeft = borderLeft;
+              cell.borderBottom = borderBottom;
+              cell.borderRight = borderRight;
+              cell.defaultValue = "";
+              cell.cellEditorType = Cell.cellEditorTypeNone;
+            }
+            break;
+          case 5:
+            {
+              Cell cell = doc.setCell(0, y, "");
+              cell.borderTop = borderTop;
+              cell.borderLeft = borderLeft;
+              cell.borderBottom = CellBorder(
+                Settings.borderWidth,
+                Settings.borderColor,
+              );
+              cell.borderRight = borderRight;
+              cell.defaultValue = "";
+              cell.cellEditorType = Cell.cellEditorTypeText;
+              cell.displayNameSource = displayNameOffTimer;
             }
             break;
           default:
             Cell cell = doc.setCell(0, y, "");
-            //cell.borderTop = borderTop;
             cell.borderLeft = borderLeft;
-            //cell.borderBottom = borderBottom;
-            //cell.borderRight = borderRight;
             break;
         }
 
@@ -407,11 +413,24 @@ class Context {
   }
 
   void compileEEPROM() {
+    int countPerRelay = 8;
     compileEEPROMIndex = -1;
     clearEEPROM();
     var shRelayView = docs[relayViewSheetIndex];
+
+    Map<int, int> timerValuesByRelay = {};
     for (int ri = 0; ri < 16; ri++) {
-      int countPerRelay = 8;
+      var y = ri * countPerRelay + 5;
+      var v = shRelayView.getCell(0, y).value;
+      int vInt = 255;
+      int? vIntN = int.tryParse(v);
+      if (vIntN != null) {
+        vInt = vIntN;
+      }
+      timerValuesByRelay[ri] = vInt;
+    }
+
+    for (int ri = 0; ri < 16; ri++) {
       for (int i = 0; i < countPerRelay; i++) {
         var y = ri * countPerRelay + i;
         var swonFront = shRelayView.getCell(1, y).value;
@@ -556,6 +575,18 @@ class Context {
         shRelayView.getCell(10, y).warning = !tonValid;
       }
     }
+
+    var shEEPROM = docs[eepromSheetIndex];
+    for (int ri = 0; ri < 16; ri++) {
+      for (int i = 0; i < 64; i++) {
+        if (shEEPROM.getCellValue(1, i) == ri) {
+          if (shEEPROM.getCellValue(2, i) == 1 || true) {
+            shEEPROM.getCell(10, i).value =
+                formatValue(timerValuesByRelay[ri] ?? 255);
+          }
+        }
+      }
+    }
   }
 
   void updateSwitchOptionsOnCell(Cell cell) {}
@@ -571,6 +602,14 @@ class Context {
       onDefaultFocus();
     };
     return doc;
+  }
+
+  String displayNameOffTimer(String v) {
+    if (v == "") {
+      return "нет";
+    }
+
+    return "$v мин";
   }
 
   String displayNameOnOff(String v) {

@@ -93,14 +93,9 @@ class Sheet {
 
         var cell = getCell(currentX, currentY);
 
-        if (cell.cellEditorType != Cell.cellEditorTypeNone) {
+        if (cell.cellEditorType == Cell.cellEditorTypeText) {
           editing_ = true;
-          if (cell.cellEditorType == Cell.cellEditorTypeText) {
-            cell.textToInitField = event.logicalKey.keyLabel;
-          }
-          if (cell.cellEditorType == Cell.cellEditorTypeSelect) {
-            onShowEditDialog(cell);
-          }
+          cell.textToInitField = event.logicalKey.keyLabel;
         }
       }
 
