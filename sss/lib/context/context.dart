@@ -573,6 +573,28 @@ class Context {
         }
         shRelayView.getCell(9, y).warning = !tonValid;
         shRelayView.getCell(10, y).warning = !tonValid;
+
+        // Time
+        bool toffValid = false;
+        int toffHByte = 0xFF;
+        int toffMByte = 0xFF;
+        if (toffH.isEmpty && toffM.isEmpty) {
+          toffValid = true;
+        }
+        if (toffH.isNotEmpty && toffM.isNotEmpty) {
+          toffHByte = int.tryParse(toffH, radix: 10) ?? 0xFF;
+          toffMByte = int.tryParse(toffM, radix: 10) ?? 0xFF;
+          if (toffHByte == 0xFF || toffMByte == 0xFF) {
+            toffHByte = 0xFF;
+            toffHByte = 0xFF;
+          }
+          toffValid = toffHByte != 0xFF && toffMByte != 0xFF;
+          if (toffValid) {
+            addEventTime(ri, 1, 8, toffHByte, toffMByte);
+          }
+        }
+        shRelayView.getCell(11, y).warning = !toffValid;
+        shRelayView.getCell(12, y).warning = !toffValid;
       }
     }
 
