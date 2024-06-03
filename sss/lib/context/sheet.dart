@@ -17,6 +17,11 @@ class Sheet {
   List<Col> columns = [];
   List<Col> topHeaderColumns = [];
 
+  void clearRows() {
+    _cells = [];
+    //notifyChanges();
+  }
+
   void addColumn(String displayName, double width) {
     columns.add(Col(columns.length, displayName, width));
   }
@@ -227,7 +232,7 @@ class Sheet {
   int getCellValue(int x, int y) {
     for (var c in _cells) {
       if (c.x == x && c.y == y) {
-        return int.tryParse(c.value) ?? 0xFF;
+        return int.tryParse(c.value, radix: 16) ?? 0xFF;
       }
     }
     return 0xFF;

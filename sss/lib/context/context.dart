@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor_select.dart';
@@ -8,30 +9,31 @@ import 'sheet.dart';
 
 class Context {
   Context() {
-    createRelayView();
-    createEEPROMView();
+    initDocument();
   }
 
   static const int relayViewSheetIndex = 0;
-  static const int eepromSheetIndex = 1;
+  static const int switchesSheetIndex = 1;
+  static const int settingsSheetIndex = 2;
+  static const int eepromSheetIndex = 3;
 
   void createEEPROMView() {
     var doc = addSheet();
-    doc.addColumn("Index", 60);
-    doc.addColumn("Relay Number", 60);
-    doc.addColumn("Action", 60);
-    doc.addColumn("Switch Falling Edge", 60);
-    doc.addColumn("Switch Rising Edge", 60);
-    doc.addColumn("Relay Falling Edge", 60);
-    doc.addColumn("Relay Rising Edge", 60);
-    doc.addColumn("Switch Double Click", 60);
-    doc.addColumn("Time Hours", 60);
-    doc.addColumn("Time Minutes", 60);
-    doc.addColumn("Time Value", 60);
+    doc.addColumn("N", 60);
+    doc.addColumn("Relay\r\n *lines", 100);
+    doc.addColumn("Action\r\n *invert", 100);
+    doc.addColumn("SW falling\r\n *escort block", 100);
+    doc.addColumn("SW rising\r\n *escort timer", 100);
+    doc.addColumn("RL falling", 100);
+    doc.addColumn("RL rising", 100);
+    doc.addColumn("---", 100);
+    doc.addColumn("Time Hours", 100);
+    doc.addColumn("Time Minutes", 100);
+    doc.addColumn("Time Value", 100);
 
     doc.displayName = "Образ EEPROM";
     for (int y = 0; y < 64; y++) {
-      doc.setCell(0, y, "$y");
+      doc.setCell(0, y, "");
     }
     for (int y = 0; y < 64; y++) {
       for (int x = 1; x < 11; x++) {
@@ -59,9 +61,51 @@ class Context {
     }
   }
 
+  void createSwitches() {
+    var doc = addSheet();
+    doc.addColumn("Выключатель", 250);
+    doc.addColumn("Фронт", 100);
+    doc.addColumn("Действие", 100);
+    doc.addColumn("Реле", 100);
+
+    doc.displayName = "Сводка";
+  }
+
+  int countPerRelay = 8;
+
+  void createSettings() {
+    var doc = addSheet();
+    doc.addColumn("Параметр", 250);
+    doc.addColumn("Значение", 100);
+
+    doc.displayName = "Настройки";
+
+    var cell0n = doc.setCell(0, 0, "Кол-во строк");
+    cell0n.setBorderLeftTopDefault();
+    var cell1n = doc.setCell(0, 1, "Инвертировать выключатели");
+    cell1n.setBorderLeftTopDefault();
+    var cell2n = doc.setCell(0, 2, "Блокировка перед эскортом, мин");
+    cell2n.setBorderLeftTopDefault();
+    var cell3n = doc.setCell(0, 3, "Эскорт-таймер, мин");
+    cell3n.setBorderLeftTopDefault();
+
+    var cell0 = doc.setCell(1, 0, "");
+    cell0.cellEditorType = Cell.cellEditorTypeNone;
+    cell0.setBorderLeftTopDefault();
+    var cell1 = doc.setCell(1, 1, "");
+    cell1.cellEditorType = Cell.cellEditorTypeText;
+    cell1.setBorderLeftTopDefault();
+    var cell2 = doc.setCell(1, 2, "");
+    cell2.cellEditorType = Cell.cellEditorTypeText;
+    cell2.setBorderLeftTopDefault();
+    var cell3 = doc.setCell(1, 3, "");
+    cell3.cellEditorType = Cell.cellEditorTypeText;
+    cell3.setBorderLeftTopDefault();
+  }
+
   void createRelayView() {
     var doc = addSheet();
-    doc.displayName = "Настройка";
+    doc.displayName = "Реле";
 
     doc.addTopHeaderColumn("", 200);
 
@@ -92,7 +136,6 @@ class Context {
     doc.addColumn("минуты", 150);
 
     for (int ri = 0; ri < 16; ri++) {
-      int countPerRelay = 8;
       for (int i = 0; i < countPerRelay; i++) {
         int y = ri * countPerRelay + i;
         CellBorder borderTop = CellBorder(
@@ -343,14 +386,21 @@ class Context {
   void clearEEPROM() {
     var shEEPROM = docs[eepromSheetIndex];
     for (int i = 0; i < 64; i++) {
-      shEEPROM.getCell(0, i).value = formatValue(i);
+      int rowIndex = i;
+      /*if (i > 1) {
+        rowIndex -= 1;
+      }*/
+      //if (i != 1) {
+      shEEPROM.getCell(0, i).value = rowIndex.toString();
+      //}
+
       for (int ii = 1; ii < 11; ii++) {
         shEEPROM.getCell(ii, i).value = formatValue(0xFF);
       }
     }
   }
 
-  int compileEEPROMIndex = -1;
+  int compileEEPROMIndex = 1;
 
   void addEvent(int relayIndex, int action, int column, int value) {
     var shEEPROM = docs[eepromSheetIndex];
@@ -371,8 +421,7 @@ class Context {
     if (!hasSet) {
       if (compileEEPROMIndex < 63) {
         compileEEPROMIndex++;
-        shEEPROM.getCell(0, compileEEPROMIndex).value =
-            formatValue(compileEEPROMIndex);
+
         shEEPROM.getCell(1, compileEEPROMIndex).value = formatValue(relayIndex);
         shEEPROM.getCell(2, compileEEPROMIndex).value = formatValue(action);
         shEEPROM.getCell(column, compileEEPROMIndex).value = valueStr;
@@ -402,8 +451,7 @@ class Context {
     if (!hasSet) {
       if (compileEEPROMIndex < 63) {
         compileEEPROMIndex++;
-        shEEPROM.getCell(0, compileEEPROMIndex).value =
-            formatValue(compileEEPROMIndex);
+
         shEEPROM.getCell(1, compileEEPROMIndex).value = formatValue(relayIndex);
         shEEPROM.getCell(2, compileEEPROMIndex).value = formatValue(action);
         shEEPROM.getCell(column, compileEEPROMIndex).value = valueHStr;
@@ -412,11 +460,57 @@ class Context {
     }
   }
 
+  void clearSwitches() {
+    var shSwitches = docs[switchesSheetIndex];
+    shSwitches.clearRows();
+  }
+
+  void fillSwitches() {
+    int index = 0;
+    var shEEPROM = docs[eepromSheetIndex];
+    var shSwitches = docs[switchesSheetIndex];
+    shSwitches.clearRows();
+    for (int swIndex = 0; swIndex < 16; swIndex++) {
+      for (int i = 1; i < 64; i++) {
+        var switchRising = shEEPROM.getCellValue(4, i);
+        if (swIndex != switchRising) {
+          continue;
+        }
+        var relay = shEEPROM.getCellValue(1, i);
+        var action = shEEPROM.getCellValue(2, i);
+        if (switchRising != 0xFF) {
+          shSwitches.setCell(0, index, "Выключатель " + swIndex.toString());
+          shSwitches.setCell(1, index, "восх фронт");
+          shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
+          shSwitches.setCell(3, index, "Реле " + relay.toString());
+          index++;
+        }
+      }
+      for (int i = 1; i < 64; i++) {
+        var switchRising = shEEPROM.getCellValue(3, i);
+        if (swIndex != switchRising) {
+          continue;
+        }
+        var relay = shEEPROM.getCellValue(1, i);
+        var action = shEEPROM.getCellValue(2, i);
+        if (switchRising != 0xFF) {
+          shSwitches.setCell(0, index, "Выключатель " + swIndex.toString());
+          shSwitches.setCell(1, index, "низх фронт");
+          shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
+          shSwitches.setCell(3, index, "Реле " + relay.toString());
+          index++;
+        }
+      }
+    }
+  }
+
   void compileEEPROM() {
     int countPerRelay = 8;
-    compileEEPROMIndex = -1;
+    compileEEPROMIndex = 0;
     clearEEPROM();
     var shRelayView = docs[relayViewSheetIndex];
+    var shEEPROM = docs[eepromSheetIndex];
+    var shSettings = docs[settingsSheetIndex];
 
     Map<int, int> timerValuesByRelay = {};
     for (int ri = 0; ri < 16; ri++) {
@@ -598,7 +692,6 @@ class Context {
       }
     }
 
-    var shEEPROM = docs[eepromSheetIndex];
     for (int ri = 0; ri < 16; ri++) {
       for (int i = 0; i < 64; i++) {
         if (shEEPROM.getCellValue(1, i) == ri) {
@@ -609,6 +702,14 @@ class Context {
         }
       }
     }
+
+    shEEPROM.getCell(1, 0).value = formatValue(compileEEPROMIndex);
+    shEEPROM.getCell(2, 0).value =
+        shSettings.getCell(1, 1).value == "1" ? "01" : "00";
+    shEEPROM.getCell(3, 0).value = shSettings.getCell(1, 2).value;
+    shEEPROM.getCell(4, 0).value = shSettings.getCell(1, 3).value;
+
+    fillSwitches();
   }
 
   void updateSwitchOptionsOnCell(Cell cell) {}
@@ -704,18 +805,27 @@ class Context {
       currentDocIndex = 1;
       return;
     }
+    if (event.logicalKey == LogicalKeyboardKey.f3) {
+      currentDocIndex = 2;
+      return;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.f4) {
+      currentDocIndex = 3;
+      return;
+    }
 
     processed = docs[currentDocIndex].processKeyDown(event);
     //print("Processed: $processed");
     processedLastKey = processed;
   }
 
-  Widget buildButton(BuildContext context, int index) {
+  Widget buildButton(BuildContext context, String text2, int index) {
     Color col = Settings.backColor;
     if (index == currentDocIndex) {
       col = Settings.selectionColor;
     }
     Sheet doc = docs[index];
+    var text1 = doc.displayName;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -732,8 +842,46 @@ class Context {
               color: Settings.borderColor,
             ),
           ),
-          child: Center(
-            child: Text(doc.displayName),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(text1),
+              Text(text2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildButtonSpecial(
+    BuildContext context,
+    String text1,
+    String text2,
+    Function(BuildContext context) onClick,
+  ) {
+    Color col = Settings.backColor;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          onClick(context);
+        },
+        child: Container(
+          width: 120,
+          height: 50,
+          decoration: BoxDecoration(
+            color: col,
+            border: Border.all(
+              color: Settings.borderColor,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(text1),
+              Text(text2),
+            ],
           ),
         ),
       ),
@@ -742,13 +890,96 @@ class Context {
 
   Widget buildHeader(BuildContext context) {
     List<Widget> buttons = [];
-    for (int i = 0; i < docs.length; i++) {
-      buttons.add(buildButton(context, i));
-    }
+    buttons.add(buildButton(context, "F1", 0));
+    buttons.add(buildButton(context, "F2", 1));
+    buttons.add(buildButton(context, "F3", 2));
+    buttons.add(buildButton(context, "F4", 3));
+
+    buttons.add(Expanded(child: Container()));
+    buttons.add(buildButtonSpecial(context, "Создать", "", btnNew));
+    buttons.add(buildButtonSpecial(context, "Открыть", "Ctrl+O", btnOpen));
+    buttons.add(buildButtonSpecial(context, "Сохранить", "Ctrl+S", btnSave));
+    buttons.add(buildButtonSpecial(context, "Сохранить", "как ...", btnSaveAs));
+    buttons.add(buildButtonSpecial(context, "Загрузить", "F5", btnDownload));
+    buttons.add(buildButtonSpecial(context, "Выгрузить", "F12", btnUpload));
     return Row(
       children: buttons,
     );
   }
+
+  String currentFileName = "";
+
+  void initDocument() {
+    docs = [];
+    createRelayView();
+    createSwitches();
+    createSettings();
+    createEEPROMView();
+  }
+
+  void loadDocumentFromFile(String fileName) {}
+  void saveDocumentToFile(String fileName) {
+    List<int> res = [];
+    var shRelayView = docs[relayViewSheetIndex];
+    for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
+      for (int i = 0; i < 8; i++) {
+        int rowIndex = relayIndex * countPerRelay + i;
+        var onsw1 = shRelayView.getCellValue(1, rowIndex);
+        var onsw2 = shRelayView.getCellValue(2, rowIndex);
+        var onrl1 = shRelayView.getCellValue(3, rowIndex);
+        var onrl2 = shRelayView.getCellValue(4, rowIndex);
+
+        var offsw1 = shRelayView.getCellValue(5, rowIndex);
+        var offsw2 = shRelayView.getCellValue(6, rowIndex);
+        var offrl1 = shRelayView.getCellValue(7, rowIndex);
+        var offrl2 = shRelayView.getCellValue(8, rowIndex);
+
+        var ontm1 = shRelayView.getCellValue(9, rowIndex);
+        var ontm2 = shRelayView.getCellValue(10, rowIndex);
+        var offtm1 = shRelayView.getCellValue(11, rowIndex);
+        var offtm2 = shRelayView.getCellValue(12, rowIndex);
+      }
+    }
+  }
+
+  void btnNew(BuildContext context) {
+    initDocument();
+    currentFileName = "";
+    notifyChanges();
+  }
+
+  void btnOpen(BuildContext context) async {
+    var inputFile = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Please select an input file:',
+    );
+
+    if (inputFile == null || inputFile.count != 1) {
+      return;
+    }
+
+    loadDocumentFromFile(inputFile.files[0].name);
+  }
+
+  void btnSave(BuildContext context) async {
+    String? outputFile = await FilePicker.platform.saveFile(
+      dialogTitle: 'Please select an output file:',
+      fileName: 'project.sss',
+    );
+
+    if (outputFile == null) {
+      return;
+    }
+
+    saveDocumentToFile(outputFile);
+  }
+
+  void btnSaveAs(BuildContext context) {
+    btnSave(context);
+  }
+
+  void btnDownload(BuildContext context) {}
+
+  void btnUpload(BuildContext context) {}
 
   Widget build(
       BuildContext context, double viewportWidth, double viewportHeight) {

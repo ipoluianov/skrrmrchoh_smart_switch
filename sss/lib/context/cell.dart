@@ -40,6 +40,11 @@ class Cell {
   CellBorder borderTop = CellBorder(1, Colors.transparent);
   CellBorder borderBottom = CellBorder(1, Colors.transparent);
 
+  void setBorderLeftTopDefault() {
+    borderLeft = CellBorder(Settings.borderWidth, Settings.borderColor);
+    borderTop = CellBorder(Settings.borderWidth, Settings.borderColor);
+  }
+
   static const cellEditorTypeNone = 0;
   static const cellEditorTypeText = 1;
   static const cellEditorTypeSelect = 2;
