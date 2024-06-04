@@ -81,6 +81,13 @@ class Sheet {
     notifyChanges();
   }
 
+  bool isCurrentCell(int x, int y) {
+    if (currentX == x && currentY == y) {
+      return true;
+    }
+    return false;
+  }
+
   bool processKeyDown(RawKeyDownEvent event) {
     bool processed = false;
     var cell = getCell(currentX, currentY);
@@ -236,6 +243,15 @@ class Sheet {
       }
     }
     return 0xFF;
+  }
+
+  String getCellValueStr(int x, int y) {
+    for (var c in _cells) {
+      if (c.x == x && c.y == y) {
+        return c.value;
+      }
+    }
+    return "";
   }
 
   bool dialogEditorIsActive() {
@@ -450,7 +466,9 @@ class Sheet {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Settings.backColor,
+              color: isCurrentCell(cell.x, cell.y)
+                  ? Settings.selectionColor
+                  : Settings.backColor,
               border: buildCellBorder(cell),
             ),
             child: cell.buildViewer(),

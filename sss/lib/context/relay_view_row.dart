@@ -1,20 +1,20 @@
 class RelayViewRow {
-  int relayIndex;
-  int onsw1;
-  int onsw2;
-  int offsw1;
-  int offsw2;
-  int onrl1;
-  int onrl2;
-  int offrl1;
-  int offrl2;
-  int ontm1;
-  int ontm2;
-  int offtm1;
-  int offtm2;
+  int rowIndex;
+  String onsw1;
+  String onsw2;
+  String offsw1;
+  String offsw2;
+  String onrl1;
+  String onrl2;
+  String offrl1;
+  String offrl2;
+  String ontm1;
+  String ontm2;
+  String offtm1;
+  String offtm2;
 
   RelayViewRow(
-    this.relayIndex,
+    this.rowIndex,
     this.onsw1,
     this.onsw2,
     this.offsw1,
@@ -30,7 +30,7 @@ class RelayViewRow {
   );
 
   Map<String, dynamic> toJson() => {
-        'relayIndex': relayIndex,
+        'rowIndex': rowIndex,
         'onsw1': onsw1,
         'onsw2': onsw2,
         'offsw1': offsw1,
@@ -47,7 +47,7 @@ class RelayViewRow {
 
   factory RelayViewRow.fromJson(Map<String, dynamic> json) {
     return RelayViewRow(
-      json['relayIndex'],
+      json['rowIndex'],
       json['onsw1'],
       json['onsw2'],
       json['offsw1'],

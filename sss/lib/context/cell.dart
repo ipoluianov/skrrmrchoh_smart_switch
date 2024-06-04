@@ -25,6 +25,11 @@ class Cell {
   String defaultValue = "!#NO#!";
   bool warning = false;
 
+  bool fontBold = false;
+  double fontSize = 16;
+  Color textColor = Colors.black;
+  Color backColor = Colors.white;
+
   List<CellShortcut> shortcuts = [];
 
   bool hover = false;
@@ -94,10 +99,10 @@ class Cell {
           decoration: BoxDecoration(
             border: Border.all(
               width: 2,
-              color: Colors.blue,
+              color: Settings.selectionColor,
             ),
             borderRadius: BorderRadius.circular(3),
-            color: Colors.blueAccent,
+            color: Settings.selectionColor,
           ),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
@@ -113,11 +118,16 @@ class Cell {
     return MouseRegion(
       cursor: SystemMouseCursors.basic,
       child: Container(
-        color: warning ? Colors.redAccent.withOpacity(0.4) : Colors.transparent,
+        color: warning ? Colors.redAccent.withOpacity(0.4) : backColor,
         child: Row(
           children: [
             Text(
               displayNameSource(value),
+              style: TextStyle(
+                fontWeight: fontBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: fontSize,
+                color: textColor,
+              ),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sss/context/cell_editor.dart';
+import 'package:sss/settings.dart';
 
 import 'cell.dart';
 
@@ -96,7 +97,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
   Widget buildItem(CellEditorSelectItem item, int index) {
     Color col = Colors.transparent;
     if (index == currentIndex) {
-      col = Colors.white38;
+      col = Settings.selectionColor;
     }
     return SizedBox(
       height: rowHeight,
@@ -162,9 +163,9 @@ class CellEditorSelectState extends State<CellEditorSelect> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 50, 50, 50),
+          color: Settings.backColor,
           border: Border.all(
-            color: Colors.white60,
+            color: Settings.borderColor,
             width: 2,
           )),
       child: Column(

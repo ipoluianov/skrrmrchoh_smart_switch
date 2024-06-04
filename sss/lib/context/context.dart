@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,7 +8,11 @@ import 'package:sss/context/cell_editor_select.dart';
 import 'package:sss/settings.dart';
 
 import 'cell.dart';
+import 'project.dart';
+import 'relay_view_row.dart';
 import 'sheet.dart';
+
+import 'package:confirm_dialog/confirm_dialog.dart';
 
 class Context {
   Context() {
@@ -16,6 +23,8 @@ class Context {
   static const int switchesSheetIndex = 1;
   static const int settingsSheetIndex = 2;
   static const int eepromSheetIndex = 3;
+
+  String currentFileName = "";
 
   void createEEPROMView() {
     var doc = addSheet();
@@ -61,6 +70,13 @@ class Context {
     }
   }
 
+  String lastProjectString = "";
+
+  bool hasChanges() {
+    String s = saveDocumentToString();
+    return s != lastProjectString;
+  }
+
   void createSwitches() {
     var doc = addSheet();
     doc.addColumn("Выключатель", 250);
@@ -76,31 +92,29 @@ class Context {
   void createSettings() {
     var doc = addSheet();
     doc.addColumn("Параметр", 250);
-    doc.addColumn("Значение", 100);
+    doc.addColumn("Значение", 250);
 
     doc.displayName = "Настройки";
 
-    var cell0n = doc.setCell(0, 0, "Кол-во строк");
-    cell0n.setBorderLeftTopDefault();
-    var cell1n = doc.setCell(0, 1, "Инвертировать выключатели");
-    cell1n.setBorderLeftTopDefault();
-    var cell2n = doc.setCell(0, 2, "Блокировка перед эскортом, мин");
-    cell2n.setBorderLeftTopDefault();
-    var cell3n = doc.setCell(0, 3, "Эскорт-таймер, мин");
-    cell3n.setBorderLeftTopDefault();
+    for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
+      var cell1 = doc.setCell(0, relayIndex, "Реле $relayIndex");
+      cell1.setBorderLeftTopDefault();
+      cell1.cellEditorType = Cell.cellEditorTypeNone;
 
-    var cell0 = doc.setCell(1, 0, "");
-    cell0.cellEditorType = Cell.cellEditorTypeNone;
-    cell0.setBorderLeftTopDefault();
-    var cell1 = doc.setCell(1, 1, "");
-    cell1.cellEditorType = Cell.cellEditorTypeText;
-    cell1.setBorderLeftTopDefault();
-    var cell2 = doc.setCell(1, 2, "");
-    cell2.cellEditorType = Cell.cellEditorTypeText;
-    cell2.setBorderLeftTopDefault();
-    var cell3 = doc.setCell(1, 3, "");
-    cell3.cellEditorType = Cell.cellEditorTypeText;
-    cell3.setBorderLeftTopDefault();
+      var cell2 = doc.setCell(1, relayIndex, "Название реле");
+      cell2.setBorderLeftTopDefault();
+      cell2.cellEditorType = Cell.cellEditorTypeText;
+    }
+
+    for (int swIndex = 0; swIndex < 24; swIndex++) {
+      var cell1 = doc.setCell(0, 16 + swIndex, "Выключатель $swIndex");
+      cell1.setBorderLeftTopDefault();
+      cell1.cellEditorType = Cell.cellEditorTypeNone;
+
+      var cell2 = doc.setCell(1, 16 + swIndex, "Название выключателя");
+      cell2.setBorderLeftTopDefault();
+      cell2.cellEditorType = Cell.cellEditorTypeText;
+    }
   }
 
   void createRelayView() {
@@ -138,6 +152,7 @@ class Context {
     for (int ri = 0; ri < 16; ri++) {
       for (int i = 0; i < countPerRelay; i++) {
         int y = ri * countPerRelay + i;
+        bool firstLineOfRelay = i == 0;
         CellBorder borderTop = CellBorder(
           Settings.borderWidth,
           Settings.borderColor,
@@ -156,7 +171,7 @@ class Context {
         );
         if (i == 0) {
           borderTop.color = Settings.borderColor;
-          borderTop.width = Settings.borderWidth;
+          borderTop.width = 2;
         }
         switch (i) {
           case 0:
@@ -165,6 +180,9 @@ class Context {
               cell.cellEditorType = Cell.cellEditorTypeText;
               cell.borderTop = borderTop;
               cell.borderLeft = borderLeft;
+              cell.fontBold = true;
+              cell.fontSize += 2;
+              cell.backColor = Colors.amberAccent;
             }
             break;
           case 1:
@@ -479,10 +497,10 @@ class Context {
         var relay = shEEPROM.getCellValue(1, i);
         var action = shEEPROM.getCellValue(2, i);
         if (switchRising != 0xFF) {
-          shSwitches.setCell(0, index, "Выключатель " + swIndex.toString());
+          shSwitches.setCell(0, index, getSwitchName(swIndex));
           shSwitches.setCell(1, index, "восх фронт");
           shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
-          shSwitches.setCell(3, index, "Реле " + relay.toString());
+          shSwitches.setCell(3, index, getRelayName(relay));
           index++;
         }
       }
@@ -494,10 +512,10 @@ class Context {
         var relay = shEEPROM.getCellValue(1, i);
         var action = shEEPROM.getCellValue(2, i);
         if (switchRising != 0xFF) {
-          shSwitches.setCell(0, index, "Выключатель " + swIndex.toString());
+          shSwitches.setCell(0, index, getSwitchName(swIndex));
           shSwitches.setCell(1, index, "низх фронт");
           shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
-          shSwitches.setCell(3, index, "Реле " + relay.toString());
+          shSwitches.setCell(3, index, getRelayName(relay));
           index++;
         }
       }
@@ -749,6 +767,12 @@ class Context {
     if (v == "") {
       return "";
     }
+
+    int? switchIndex = int.tryParse(v);
+    if (switchIndex != null) {
+      return getSwitchName(switchIndex);
+    }
+
     return "выключатель №$v";
   }
 
@@ -756,6 +780,12 @@ class Context {
     if (v == "") {
       return "";
     }
+
+    int? relayIndex = int.tryParse(v);
+    if (relayIndex != null) {
+      return getRelayName(relayIndex);
+    }
+
     return "реле №$v";
   }
 
@@ -788,6 +818,8 @@ class Context {
   bool processedLastKey = false;
 
   void notifyChanges() {
+    updateRelayNames();
+
     if (currentDocIndex == relayViewSheetIndex) {
       compileEEPROM();
     }
@@ -858,9 +890,15 @@ class Context {
     BuildContext context,
     String text1,
     String text2,
-    Function(BuildContext context) onClick,
-  ) {
+    Function(BuildContext context) onClick, {
+    bool highlighted = false,
+  }) {
     Color col = Settings.backColor;
+
+    if (highlighted) {
+      col = Settings.selectionColor;
+    }
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -898,7 +936,15 @@ class Context {
     buttons.add(Expanded(child: Container()));
     buttons.add(buildButtonSpecial(context, "Создать", "", btnNew));
     buttons.add(buildButtonSpecial(context, "Открыть", "Ctrl+O", btnOpen));
-    buttons.add(buildButtonSpecial(context, "Сохранить", "Ctrl+S", btnSave));
+    buttons.add(
+      buildButtonSpecial(
+        context,
+        "Сохранить",
+        "Ctrl+S",
+        btnSave,
+        highlighted: hasChanges(),
+      ),
+    );
     buttons.add(buildButtonSpecial(context, "Сохранить", "как ...", btnSaveAs));
     buttons.add(buildButtonSpecial(context, "Загрузить", "F5", btnDownload));
     buttons.add(buildButtonSpecial(context, "Выгрузить", "F12", btnUpload));
@@ -906,8 +952,6 @@ class Context {
       children: buttons,
     );
   }
-
-  String currentFileName = "";
 
   void initDocument() {
     docs = [];
@@ -917,34 +961,114 @@ class Context {
     createEEPROMView();
   }
 
-  void loadDocumentFromFile(String fileName) {}
-  void saveDocumentToFile(String fileName) {
-    List<int> res = [];
+  void loadDocumentFromFile(String fileName) async {
+    var value = await File(fileName).readAsString();
     var shRelayView = docs[relayViewSheetIndex];
+    var stRelayView = docs[settingsSheetIndex];
+    var m = jsonDecode(value);
+    Project project = Project.fromJson(m);
     for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
       for (int i = 0; i < 8; i++) {
         int rowIndex = relayIndex * countPerRelay + i;
-        var onsw1 = shRelayView.getCellValue(1, rowIndex);
-        var onsw2 = shRelayView.getCellValue(2, rowIndex);
-        var onrl1 = shRelayView.getCellValue(3, rowIndex);
-        var onrl2 = shRelayView.getCellValue(4, rowIndex);
+        RelayViewRow item = project.items[rowIndex];
 
-        var offsw1 = shRelayView.getCellValue(5, rowIndex);
-        var offsw2 = shRelayView.getCellValue(6, rowIndex);
-        var offrl1 = shRelayView.getCellValue(7, rowIndex);
-        var offrl2 = shRelayView.getCellValue(8, rowIndex);
+        shRelayView.getCell(1, rowIndex).value = item.onsw1;
+        shRelayView.getCell(2, rowIndex).value = item.onsw2;
+        shRelayView.getCell(3, rowIndex).value = item.onrl1;
+        shRelayView.getCell(4, rowIndex).value = item.onrl2;
 
-        var ontm1 = shRelayView.getCellValue(9, rowIndex);
-        var ontm2 = shRelayView.getCellValue(10, rowIndex);
-        var offtm1 = shRelayView.getCellValue(11, rowIndex);
-        var offtm2 = shRelayView.getCellValue(12, rowIndex);
+        shRelayView.getCell(5, rowIndex).value = item.offsw1;
+        shRelayView.getCell(6, rowIndex).value = item.offsw2;
+        shRelayView.getCell(7, rowIndex).value = item.offrl1;
+        shRelayView.getCell(8, rowIndex).value = item.offrl2;
+
+        shRelayView.getCell(9, rowIndex).value = item.ontm1;
+        shRelayView.getCell(10, rowIndex).value = item.ontm2;
+        shRelayView.getCell(11, rowIndex).value = item.offtm1;
+        shRelayView.getCell(12, rowIndex).value = item.offtm2;
       }
     }
+
+    for (int settingsIndex = 0; settingsIndex < 16 + 24; settingsIndex++) {
+      stRelayView.getCell(1, settingsIndex).value =
+          project.settings[settingsIndex];
+    }
+
+    currentFileName = fileName;
+    lastProjectString = value;
+    notifyChanges();
+  }
+
+  String getRelayName(int relayIndex) {
+    var settingsView = docs[settingsSheetIndex];
+    return settingsView.getCell(1, relayIndex).value;
+  }
+
+  String getSwitchName(int swIndex) {
+    var settingsView = docs[settingsSheetIndex];
+    return settingsView.getCell(1, swIndex + 16).value;
+  }
+
+  void updateRelayNames() {
+    for (int i = 0; i < 16; i++) {
+      var shRelayView = docs[relayViewSheetIndex];
+      int rowIndex = i * 8;
+      shRelayView.getCell(0, rowIndex).value = getRelayName(i);
+    }
+  }
+
+  String saveDocumentToString() {
+    Project project = Project([], []);
+    var shRelayView = docs[relayViewSheetIndex];
+    var stRelayView = docs[settingsSheetIndex];
+    for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
+      for (int i = 0; i < 8; i++) {
+        int rowIndex = relayIndex * countPerRelay + i;
+
+        RelayViewRow item = project.items[rowIndex];
+
+        item.onsw1 = shRelayView.getCellValueStr(1, rowIndex);
+        item.onsw2 = shRelayView.getCellValueStr(2, rowIndex);
+        item.onrl1 = shRelayView.getCellValueStr(3, rowIndex);
+        item.onrl2 = shRelayView.getCellValueStr(4, rowIndex);
+
+        item.offsw1 = shRelayView.getCellValueStr(5, rowIndex);
+        item.offsw2 = shRelayView.getCellValueStr(6, rowIndex);
+        item.offrl1 = shRelayView.getCellValueStr(7, rowIndex);
+        item.offrl2 = shRelayView.getCellValueStr(8, rowIndex);
+
+        item.ontm1 = shRelayView.getCellValueStr(9, rowIndex);
+        item.ontm2 = shRelayView.getCellValueStr(10, rowIndex);
+        item.offtm1 = shRelayView.getCellValueStr(11, rowIndex);
+        item.offtm2 = shRelayView.getCellValueStr(12, rowIndex);
+      }
+    }
+
+    for (int settingsIndex = 0; settingsIndex < 16 + 24; settingsIndex++) {
+      project.settings[settingsIndex] =
+          stRelayView.getCellValueStr(1, settingsIndex);
+    }
+
+    /*var encoder = const JsonEncoder.withIndent(" ");
+    encoder.convert(project);
+    String projectStr = encoder.toString();*/
+
+    String projectStr = jsonEncode(project);
+    return projectStr;
+  }
+
+  void saveDocumentToFile(String fileName) {
+    String projectStr = saveDocumentToString();
+    File(fileName).writeAsString(projectStr).then((File file) {});
+    currentFileName = fileName;
+    lastProjectString = projectStr;
+    notifyChanges();
   }
 
   void btnNew(BuildContext context) {
     initDocument();
     currentFileName = "";
+    lastProjectString = "";
     notifyChanges();
   }
 
@@ -957,29 +1081,42 @@ class Context {
       return;
     }
 
-    loadDocumentFromFile(inputFile.files[0].name);
+    loadDocumentFromFile(inputFile.files[0].path!);
   }
 
   void btnSave(BuildContext context) async {
-    String? outputFile = await FilePicker.platform.saveFile(
-      dialogTitle: 'Please select an output file:',
-      fileName: 'project.sss',
-    );
+    await save(currentFileName);
+  }
 
-    if (outputFile == null) {
-      return;
+  Future<void> save(String defaultFile) async {
+    String outputFile = defaultFile;
+    if (outputFile.isEmpty) {
+      String? file = await FilePicker.platform.saveFile(
+        dialogTitle: 'Please select an output file:',
+        fileName: 'project.sss',
+      );
+      if (file == null) {
+        return;
+      }
+      outputFile = file;
     }
 
     saveDocumentToFile(outputFile);
   }
 
-  void btnSaveAs(BuildContext context) {
-    btnSave(context);
+  void btnSaveAs(BuildContext context) async {
+    save("");
   }
 
   void btnDownload(BuildContext context) {}
 
   void btnUpload(BuildContext context) {}
+
+  Widget buildStatus(BuildContext context) {
+    String status = currentFileName;
+    if (hasChanges()) status += "*";
+    return Expanded(child: Text(status));
+  }
 
   Widget build(
       BuildContext context, double viewportWidth, double viewportHeight) {
@@ -996,15 +1133,21 @@ class Context {
         Container(color: Colors.yellow, width: 0),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               buildHeader(context),
               Expanded(
                 child: currentDoc,
               ),
               Container(
-                height: 10,
-                color: Colors.black,
+                height: 20,
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(width: 1, color: Settings.borderColor),
+                  ),
+                  color: Colors.amber.withAlpha(100),
+                ),
+                child: buildStatus(context),
               ),
             ],
           ),

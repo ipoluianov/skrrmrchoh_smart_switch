@@ -10,9 +10,9 @@ class Settings {
 
   static void setLight() {
     brightness = Brightness.light;
-    backColor = const Color.fromARGB(255, 200, 200, 200);
-    textColor = const Color.fromARGB(255, 50, 50, 50);
+    backColor = const Color.fromARGB(255, 255, 255, 255);
+    textColor = const Color.fromARGB(255, 30, 30, 30);
     borderColor = const Color.fromARGB(255, 50, 50, 50);
-    selectionColor = const Color.fromARGB(255, 20, 100, 200);
+    selectionColor = Color.fromARGB(255, 156, 196, 245);
   }
 }
