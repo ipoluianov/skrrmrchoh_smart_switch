@@ -118,7 +118,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
             padding: const EdgeInsets.all(3),
             child: Text(
               widget.cell.displayNameSource(item.value),
-              style: const TextStyle(fontSize: 20),
+              style: const TextStyle(fontSize: 14),
             ),
           ),
         ),
@@ -145,7 +145,7 @@ class CellEditorSelectState extends State<CellEditorSelect> {
 
   ScrollController vController = ScrollController();
 
-  double rowHeight = 40;
+  double rowHeight = 24;
 
   void scrollToItemY(int itemIndex) {
     final double itemPosition = itemIndex * rowHeight;

@@ -38,7 +38,7 @@ class Context {
     doc.addColumn("---", 100);
     doc.addColumn("Time Hours", 100);
     doc.addColumn("Time Minutes", 100);
-    doc.addColumn("Time Value", 100);
+    doc.addColumn("Timer Value", 100);
 
     doc.displayName = "Образ EEPROM";
     for (int y = 0; y < 64; y++) {
@@ -47,7 +47,7 @@ class Context {
     for (int y = 0; y < 64; y++) {
       for (int x = 1; x < 11; x++) {
         var cell = doc.setCell(x, y, "FF");
-        if (x == 2) {
+        /*if (x == 2) {
           cell.cellEditorType = Cell.cellEditorTypeText;
         }
         if (x == 3) {
@@ -65,7 +65,7 @@ class Context {
             CellEditorSelectItem("10", null),
             CellEditorSelectItem("11", null),
           ];
-        }
+        }*/
       }
     }
   }
@@ -79,10 +79,10 @@ class Context {
 
   void createSwitches() {
     var doc = addSheet();
-    doc.addColumn("Выключатель", 250);
+    doc.addColumn("Источник сигнала", 250);
     doc.addColumn("Фронт", 100);
     doc.addColumn("Действие", 100);
-    doc.addColumn("Реле", 100);
+    doc.addColumn("Реле", 250);
 
     doc.displayName = "Сводка";
   }
@@ -101,7 +101,7 @@ class Context {
       cell1.setBorderLeftTopDefault();
       cell1.cellEditorType = Cell.cellEditorTypeNone;
 
-      var cell2 = doc.setCell(1, relayIndex, "Название реле");
+      var cell2 = doc.setCell(1, relayIndex, getRelayName(relayIndex));
       cell2.setBorderLeftTopDefault();
       cell2.cellEditorType = Cell.cellEditorTypeText;
     }
@@ -111,7 +111,37 @@ class Context {
       cell1.setBorderLeftTopDefault();
       cell1.cellEditorType = Cell.cellEditorTypeNone;
 
-      var cell2 = doc.setCell(1, 16 + swIndex, "Название выключателя");
+      var cell2 = doc.setCell(1, 16 + swIndex, getSwitchName(swIndex));
+      cell2.setBorderLeftTopDefault();
+      cell2.cellEditorType = Cell.cellEditorTypeText;
+    }
+
+    {
+      var cell1 = doc.setCell(0, 16 + 24 + 0, "Инверсия");
+      cell1.setBorderLeftTopDefault();
+      cell1.cellEditorType = Cell.cellEditorTypeNone;
+
+      var cell2 = doc.setCell(1, 16 + 24 + 0, "0");
+      cell2.setBorderLeftTopDefault();
+      cell2.cellEditorType = Cell.cellEditorTypeText;
+    }
+
+    {
+      var cell1 = doc.setCell(0, 16 + 24 + 1, "Блокировка эскорта");
+      cell1.setBorderLeftTopDefault();
+      cell1.cellEditorType = Cell.cellEditorTypeNone;
+
+      var cell2 = doc.setCell(1, 16 + 24 + 1, "0");
+      cell2.setBorderLeftTopDefault();
+      cell2.cellEditorType = Cell.cellEditorTypeText;
+    }
+
+    {
+      var cell1 = doc.setCell(0, 16 + 24 + 2, "Таймер эскорта");
+      cell1.setBorderLeftTopDefault();
+      cell1.cellEditorType = Cell.cellEditorTypeNone;
+
+      var cell2 = doc.setCell(1, 16 + 24 + 2, "0");
       cell2.setBorderLeftTopDefault();
       cell2.cellEditorType = Cell.cellEditorTypeText;
     }
@@ -485,9 +515,14 @@ class Context {
 
   void fillSwitches() {
     int index = 0;
+    int lastSourceCode = 0xFFFFFFFF;
     var shEEPROM = docs[eepromSheetIndex];
     var shSwitches = docs[switchesSheetIndex];
     shSwitches.clearRows();
+
+    var partBorder = CellBorder(2, Colors.black);
+
+    // Switches
     for (int swIndex = 0; swIndex < 16; swIndex++) {
       for (int i = 1; i < 64; i++) {
         var switchRising = shEEPROM.getCellValue(4, i);
@@ -497,10 +532,23 @@ class Context {
         var relay = shEEPROM.getCellValue(1, i);
         var action = shEEPROM.getCellValue(2, i);
         if (switchRising != 0xFF) {
-          shSwitches.setCell(0, index, getSwitchName(swIndex));
+          shSwitches.setCell(0, index, getSwitchName(swIndex) + " (switch)");
           shSwitches.setCell(1, index, "восх фронт");
           shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
           shSwitches.setCell(3, index, getRelayName(relay));
+          if (lastSourceCode != swIndex + 100) {
+            lastSourceCode = swIndex + 100;
+
+            shSwitches.getCell(0, index).fontBold = true;
+            shSwitches.getCell(0, index).fontSize = 18;
+            shSwitches.getCell(0, index).backColor = Colors.amberAccent;
+            for (int col = 0; col < 4; col++) {
+              shSwitches.getCell(col, index).borderTop = partBorder;
+            }
+          } else {
+            shSwitches.getCell(0, index).value = "";
+          }
+
           index++;
         }
       }
@@ -512,10 +560,83 @@ class Context {
         var relay = shEEPROM.getCellValue(1, i);
         var action = shEEPROM.getCellValue(2, i);
         if (switchRising != 0xFF) {
-          shSwitches.setCell(0, index, getSwitchName(swIndex));
+          shSwitches.setCell(0, index, getSwitchName(swIndex) + " (switch)");
           shSwitches.setCell(1, index, "низх фронт");
           shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
           shSwitches.setCell(3, index, getRelayName(relay));
+
+          if (lastSourceCode != swIndex + 100) {
+            lastSourceCode = swIndex + 100;
+            shSwitches.getCell(0, index).fontBold = true;
+            shSwitches.getCell(0, index).fontSize = 18;
+            shSwitches.getCell(0, index).backColor = Colors.amberAccent;
+            for (int col = 0; col < 4; col++) {
+              shSwitches.getCell(col, index).borderTop = partBorder;
+            }
+          } else {
+            shSwitches.getCell(0, index).value = "";
+          }
+
+          index++;
+        }
+      }
+    }
+
+    // Relays
+    for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
+      for (int i = 1; i < 64; i++) {
+        var relayRising = shEEPROM.getCellValue(6, i);
+        if (relayIndex != relayRising) {
+          continue;
+        }
+        var relay = shEEPROM.getCellValue(1, i);
+        var action = shEEPROM.getCellValue(2, i);
+        if (relayRising != 0xFF) {
+          shSwitches.setCell(0, index, getRelayName(relayIndex) + " (relay)");
+          shSwitches.setCell(1, index, "восх фронт");
+          shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
+          shSwitches.setCell(3, index, getRelayName(relay));
+
+          if (lastSourceCode != relayIndex + 10000) {
+            lastSourceCode = relayIndex + 10000;
+            shSwitches.getCell(0, index).fontBold = true;
+            shSwitches.getCell(0, index).fontSize = 18;
+            shSwitches.getCell(0, index).backColor = Colors.amberAccent;
+            for (int col = 0; col < 4; col++) {
+              shSwitches.getCell(col, index).borderTop = partBorder;
+            }
+          } else {
+            shSwitches.getCell(0, index).value = "";
+          }
+
+          index++;
+        }
+      }
+      for (int i = 1; i < 64; i++) {
+        var relayRising = shEEPROM.getCellValue(5, i);
+        if (relayIndex != relayRising) {
+          continue;
+        }
+        var relay = shEEPROM.getCellValue(1, i);
+        var action = shEEPROM.getCellValue(2, i);
+        if (relayRising != 0xFF) {
+          shSwitches.setCell(0, index, getRelayName(relayIndex) + " (relay)");
+          shSwitches.setCell(1, index, "низх фронт");
+          shSwitches.setCell(2, index, action == 0 ? "включает" : "выключает");
+          shSwitches.setCell(3, index, getRelayName(relay));
+
+          if (lastSourceCode != relayIndex + 10000) {
+            lastSourceCode = relayIndex + 10000;
+            shSwitches.getCell(0, index).fontBold = true;
+            shSwitches.getCell(0, index).fontSize = 18;
+            shSwitches.getCell(0, index).backColor = Colors.amberAccent;
+            for (int col = 0; col < 4; col++) {
+              shSwitches.getCell(col, index).borderTop = partBorder;
+            }
+          } else {
+            shSwitches.getCell(0, index).value = "";
+          }
+
           index++;
         }
       }
@@ -722,11 +843,56 @@ class Context {
     }
 
     shEEPROM.getCell(1, 0).value = formatValue(compileEEPROMIndex);
-    shEEPROM.getCell(2, 0).value =
-        shSettings.getCell(1, 1).value == "1" ? "01" : "00";
-    shEEPROM.getCell(3, 0).value = shSettings.getCell(1, 2).value;
-    shEEPROM.getCell(4, 0).value = shSettings.getCell(1, 3).value;
+    var invValue =
+        shSettings.getCell(1, 16 + 24 + 0).value == "1" ? "01" : "00";
 
+    shEEPROM.getCell(2, 0).value = invValue;
+
+    var blockEscortValue = shSettings.getCellValue(1, 16 + 24 + 1);
+    shEEPROM.getCell(3, 0).value = formatValue(blockEscortValue);
+    var escortTimerValue = formatValue(shSettings.getCellValue(1, 16 + 24 + 2));
+    shEEPROM.getCell(4, 0).value = escortTimerValue;
+
+    for (int i = 0; i < 16; i++) {
+      int offTimer = shRelayView.getCellValue(0, i * 8 + 5);
+      if (offTimer != 0xFF) {
+        for (int r = 1; r < 64; r++) {
+          if (shEEPROM.getCellValue(0, r) == i) {
+            shEEPROM.getCell(9, r).value = formatValue(offTimer);
+            break;
+          }
+        }
+      }
+    }
+
+    for (int col = 1; col < 5; col++) {
+      shEEPROM.getCell(col, 0).fontBold = true;
+      shEEPROM.getCell(col, 0).backColor =
+          const Color.fromARGB(255, 220, 220, 220);
+      shEEPROM.getCell(col, 0).textColor =
+          const Color.fromARGB(255, 0, 50, 100);
+    }
+
+    for (int col = 5; col < 11; col++) {
+      shEEPROM.getCell(col, 0).fontBold = false;
+      shEEPROM.getCell(col, 0).textColor =
+          const Color.fromARGB(255, 200, 200, 200);
+    }
+
+    for (int row = 1; row < 64; row++) {
+      for (int col = 1; col < 11; col++) {
+        int val = shEEPROM.getCellValue(col, row);
+        if (val == 0xFF) {
+          shEEPROM.getCell(col, row).fontBold = false;
+          shEEPROM.getCell(col, row).textColor =
+              const Color.fromARGB(255, 200, 200, 200);
+        } else {
+          shEEPROM.getCell(col, row).fontBold = true;
+          shEEPROM.getCell(col, row).textColor =
+              const Color.fromARGB(255, 0, 180, 0);
+        }
+      }
+    }
     fillSwitches();
   }
 
@@ -817,10 +983,12 @@ class Context {
 
   bool processedLastKey = false;
 
-  void notifyChanges() {
+  void notifyChanges({rebuild = false}) {
     updateRelayNames();
 
-    if (currentDocIndex == relayViewSheetIndex) {
+    if (currentDocIndex == relayViewSheetIndex ||
+        currentDocIndex == settingsSheetIndex ||
+        rebuild) {
       compileEEPROM();
     }
     onUpdate();
@@ -989,24 +1157,32 @@ class Context {
       }
     }
 
-    for (int settingsIndex = 0; settingsIndex < 16 + 24; settingsIndex++) {
+    for (int settingsIndex = 0; settingsIndex < 16 + 24 + 3; settingsIndex++) {
       stRelayView.getCell(1, settingsIndex).value =
           project.settings[settingsIndex];
     }
 
     currentFileName = fileName;
     lastProjectString = value;
-    notifyChanges();
+    notifyChanges(rebuild: true);
   }
 
   String getRelayName(int relayIndex) {
     var settingsView = docs[settingsSheetIndex];
-    return settingsView.getCell(1, relayIndex).value;
+    String name = settingsView.getCell(1, relayIndex).value;
+    if (name.isEmpty) {
+      name = "Реле №$relayIndex";
+    }
+    return name;
   }
 
   String getSwitchName(int swIndex) {
     var settingsView = docs[settingsSheetIndex];
-    return settingsView.getCell(1, swIndex + 16).value;
+    String name = settingsView.getCell(1, swIndex + 16).value;
+    if (name.isEmpty) {
+      name = "Выключатель №$swIndex";
+    }
+    return name;
   }
 
   void updateRelayNames() {
@@ -1018,7 +1194,7 @@ class Context {
   }
 
   String saveDocumentToString() {
-    Project project = Project([], []);
+    Project project = Project([], [], 0, 0, 0);
     var shRelayView = docs[relayViewSheetIndex];
     var stRelayView = docs[settingsSheetIndex];
     for (int relayIndex = 0; relayIndex < 16; relayIndex++) {
@@ -1044,7 +1220,7 @@ class Context {
       }
     }
 
-    for (int settingsIndex = 0; settingsIndex < 16 + 24; settingsIndex++) {
+    for (int settingsIndex = 0; settingsIndex < 16 + 24 + 3; settingsIndex++) {
       project.settings[settingsIndex] =
           stRelayView.getCellValueStr(1, settingsIndex);
     }
@@ -1115,7 +1291,7 @@ class Context {
   Widget buildStatus(BuildContext context) {
     String status = currentFileName;
     if (hasChanges()) status += "*";
-    return Expanded(child: Text(status));
+    return Text(status);
   }
 
   Widget build(
@@ -1129,6 +1305,7 @@ class Context {
     //return Container(color: Colors.yellow, width: 50);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(color: Colors.yellow, width: 0),
         Expanded(

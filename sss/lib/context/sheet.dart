@@ -61,6 +61,20 @@ class Sheet {
 
   bool isDigit(LogicalKeyboardKey key) {
     var ku = key.keyLabel.codeUnitAt(0);
+
+    if (key.keyLabel == "Numpad 0" ||
+        key.keyLabel == "Numpad 1" ||
+        key.keyLabel == "Numpad 2" ||
+        key.keyLabel == "Numpad 3" ||
+        key.keyLabel == "Numpad 4" ||
+        key.keyLabel == "Numpad 5" ||
+        key.keyLabel == "Numpad 6" ||
+        key.keyLabel == "Numpad 7" ||
+        key.keyLabel == "Numpad 8" ||
+        key.keyLabel == "Numpad 9") {
+      return true;
+    }
+
     if (key.keyLabel.length > 1) {
       return false;
     }
@@ -107,7 +121,42 @@ class Sheet {
 
         if (cell.cellEditorType == Cell.cellEditorTypeText) {
           editing_ = true;
-          cell.textToInitField = event.logicalKey.keyLabel;
+
+          String keyText = event.logicalKey.keyLabel;
+          switch (keyText) {
+            case "Numpad 0":
+              keyText = "0";
+              break;
+            case "Numpad 1":
+              keyText = "1";
+              break;
+            case "Numpad 2":
+              keyText = "2";
+              break;
+            case "Numpad 3":
+              keyText = "3";
+              break;
+            case "Numpad 4":
+              keyText = "4";
+              break;
+            case "Numpad 5":
+              keyText = "5";
+              break;
+            case "Numpad 6":
+              keyText = "6";
+              break;
+            case "Numpad 7":
+              keyText = "7";
+              break;
+            case "Numpad 8":
+              keyText = "8";
+              break;
+            case "Numpad 9":
+              keyText = "9";
+              break;
+          }
+
+          cell.textToInitField = keyText;
         }
       }
 
@@ -409,7 +458,7 @@ class Sheet {
             ),
           ),
         ),
-        buildEditorDialog(viewportWidth * 0.75, viewPortHeight * 0.75),
+        buildEditorDialog(300, 700),
       ],
     );
   }
@@ -505,22 +554,27 @@ class Sheet {
         SizedBox(
           width: topHeaderColumns[x].width,
           height: 20,
-          child: Padding(
-            padding: EdgeInsets.only(left: 0, right: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 1,
-                    color: Settings.borderColor,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 240, 240, 240),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(left: 0, right: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 1,
+                      color: Settings.borderColor,
+                    ),
                   ),
                 ),
-              ),
-              padding: const EdgeInsets.all(0),
-              child: Text(
-                topHeaderColumns[x].displayName,
-                style: TextStyle(
-                  color: Settings.textColor,
+                padding: const EdgeInsets.all(0),
+                child: Text(
+                  topHeaderColumns[x].displayName,
+                  style: TextStyle(
+                    color: Settings.textColor,
+                  ),
                 ),
               ),
             ),
@@ -541,13 +595,18 @@ class Sheet {
       cellsInHeaderRow.add(
         SizedBox(
           width: columnWidth(x),
-          height: 30,
-          child: Padding(
-            padding: const EdgeInsets.all(0),
-            child: Text(
-              columns[x].displayName,
-              style: TextStyle(
-                color: Settings.textColor,
+          height: 40,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 240, 240, 240),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(0),
+              child: Text(
+                columns[x].displayName,
+                style: TextStyle(
+                  color: Settings.textColor,
+                ),
               ),
             ),
           ),
