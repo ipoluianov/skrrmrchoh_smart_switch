@@ -40,11 +40,20 @@ const ViewRelays: React.FC = () => {
         { Key: '1', Value: 'Up' },
       ];
     }
-    if (selectedCell?.col === 2) {
+    if (selectedCell?.col === 2 || selectedCell?.col === 4) {
       let result = [];
       for (let i = 0; i < 24; i++) {
         let key = i.toString();
         let value = switchNameBySwitchNumber(i);
+        result.push({ Key: key, Value: value });
+      }
+      return result;
+    }
+    if (selectedCell?.col === 6 || selectedCell?.col === 8) {
+      let result = [];
+      for (let i = 0; i < 16; i++) {
+        let key = i.toString();
+        let value = relayNameByRelayNumber(i);
         result.push({ Key: key, Value: value });
       }
       return result;
@@ -73,8 +82,10 @@ const ViewRelays: React.FC = () => {
   };
 
   const handleConfirm = (selectedKey: string | null) => {
+    // alert(selectedKey);
     if (selectedKey) {
-      updateRelayRow(selectedCell!.row, { frontSwitchOn: Number.parseInt(selectedKey) });
+      //updateRelayRow(selectedCell!.row, { frontSwitchOn: Number.parseInt(selectedKey) });
+      setCurrentCellValue(Number.parseInt(selectedKey));
       closeDialog();
     }
   };
@@ -163,6 +174,50 @@ const ViewRelays: React.FC = () => {
     setIsEditing(false);
     containerRef.current?.focus();
   };
+
+  const setCurrentCellValue = (value: number) => { 
+    if (selectedCell) {
+      const { row, col } = selectedCell;
+      switch (col) {
+        case 1:
+          updateRelayRow(row, { frontSwitchOn: value });
+          break;
+        case 2:
+          updateRelayRow(row, { switchOn: value });
+          break;
+        case 3:
+          updateRelayRow(row, { frontSwitchOff: value });
+          break;
+        case 4:
+          updateRelayRow(row, { switchOff: value });
+          break;
+        case 5:
+          updateRelayRow(row, { frontRelayOn: value });
+          break;
+        case 6:
+          updateRelayRow(row, { relayOn: value });
+          break;
+        case 7:
+          updateRelayRow(row, { frontRelayOff: value });
+          break;
+        case 8:
+          updateRelayRow(row, { relayOff: value });
+          break;
+        case 9:
+          updateRelayRow(row, { timeOnHour: value });
+          break;
+        case 10:
+          updateRelayRow(row, { timeOnMinute: value });
+          break;
+        case 11:
+          updateRelayRow(row, { timeOffHour: value });
+          break;
+        case 12:
+          updateRelayRow(row, { timeOffMinute: value });
+          break;
+      }
+    }
+  }
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!selectedCell) return;
