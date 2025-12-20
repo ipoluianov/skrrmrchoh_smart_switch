@@ -565,6 +565,7 @@ void rs485_transmit_first_byte()
 const int FUNC_WRITE_EEPROM = 1;
 const int FUNC_READ_EEPROM = 2;
 const int FUNC_READ_SWITCHES_STATE = 3;
+const int FUNC_SET_DISPLAY = 4;
 
 void rs485_half_response()
 {
@@ -616,29 +617,37 @@ void rs485_read_swithes_state()
 }
 
 
-
 void rs485_frame_process()
 {
+
     unsigned char function = input_buffer[2];
     unsigned char subaddress_0 = input_buffer[3];
     // unsigned char subaddress_1 = input_buffer[4];
     unsigned char * data = input_buffer + 5;
-   
+
+  
     
     if (frame_received)
     {
         frame_received = 0;
+        
         switch(function)
         {
             case FUNC_WRITE_EEPROM:
-                rs485_write_eeprom(subaddress_0, data);
+                // rs485_write_eeprom(subaddress_0, data);
             break;
             case FUNC_READ_EEPROM:
                 rs485_read_eeprom(subaddress_0);
             break;        
             case FUNC_READ_SWITCHES_STATE:
-                rs485_read_swithes_state();
+                // rs485_read_swithes_state();
             break;
+            case FUNC_SET_DISPLAY:
+                display_overridden_flag =  data[0];
+                display_overridden[0] = data[1]; 
+                display_overridden[1] = data[2]; 
+                display_overridden[2] = data[3]; 
+                display_overridden[3] = data[4]; 
             default:
             {
                 output_buffer[5] = 0x31;

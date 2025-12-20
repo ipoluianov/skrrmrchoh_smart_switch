@@ -133,7 +133,7 @@ unsigned int relays_16=0, relays_16_oldstate;
 
 unsigned int to_second_counter=0;
 unsigned char rs485_timeout_counter = 0;
-unsigned char rs485_addr = 100;
+unsigned char rs485_addr = 6;
 
 // unsigned int TMP_counter=0;
 

@@ -290,21 +290,5 @@ while (1)
         relay_low = relays_16 & 0xFF;
         spi(relay_low); 
         spi(relay_high);        
-
-        
-                
-
-
-
-       
-        
-              
-        
-
-
-        
-
-        
-                    
       }
 }

@@ -1,7 +1,7 @@
 main DSTACK_USAGE:0 DSTACK_LEVEL:0 FILE:"SmartSwitch.c" LINE:202
 rs485_frame_process DSTACK_USAGE:4 DSTACK_LEVEL:4 FILE:"functions.h" LINE:620
-rs485_write_eeprom DSTACK_USAGE:4 DSTACK_LEVEL:8 FILE:"functions.h" LINE:583
-rs485_half_response DSTACK_USAGE:0 DSTACK_LEVEL:8 FILE:"functions.h" LINE:569
-calculate_crc DSTACK_USAGE:4 DSTACK_LEVEL:12 FILE:"rs485_functions.h" LINE:23
-usart_rx_isr DSTACK_USAGE:14 DSTACK_LEVEL:26 FILE:"interrupts.h" LINE:163
-calculate_crc DSTACK_USAGE:4 DSTACK_LEVEL:30 FILE:"rs485_functions.h" LINE:23
+rs485_read_eeprom DSTACK_USAGE:2 DSTACK_LEVEL:6 FILE:"functions.h" LINE:600
+rs485_half_response DSTACK_USAGE:0 DSTACK_LEVEL:6 FILE:"functions.h" LINE:570
+calculate_crc DSTACK_USAGE:4 DSTACK_LEVEL:10 FILE:"rs485_functions.h" LINE:23
+usart_rx_isr DSTACK_USAGE:14 DSTACK_LEVEL:24 FILE:"interrupts.h" LINE:169
+calculate_crc DSTACK_USAGE:4 DSTACK_LEVEL:28 FILE:"rs485_functions.h" LINE:23

@@ -1,5 +1,5 @@
 
-;CodeVisionAVR C Compiler V3.14 Advanced
+;CodeVisionAVR C Compiler V3.12 Advanced
 ;(C) Copyright 1998-2014 Pavel Haiduc, HP InfoTech s.r.l.
 ;http://www.hpinfotech.com
 
@@ -1195,6 +1195,8 @@ _0xE7:
 	.DB  0x2
 _0xE8:
 	.DB  0x3
+_0xE9:
+	.DB  0x4
 
 __GLOBAL_INI_TBL:
 	.DW  0x01
@@ -1739,7 +1741,7 @@ _0x20:
 	CBI  0x15,6
 	SBI  0x15,3
 	MOV  R30,R4
-	RJMP _0x166
+	RJMP _0x169
 _0x24:
 	CPI  R30,LOW(0x1)
 	LDI  R26,HIGH(0x1)
@@ -1775,7 +1777,7 @@ _0x29:
 	CBI  0x15,5
 	SBI  0x15,4
 	MOV  R30,R6
-	RJMP _0x166
+	RJMP _0x169
 _0x36:
 	CPI  R30,LOW(0x3)
 	LDI  R26,HIGH(0x3)
@@ -1784,7 +1786,7 @@ _0x36:
 	CBI  0x15,4
 	SBI  0x15,6
 	MOV  R30,R9
-_0x166:
+_0x169:
 	LDI  R31,0
 	SUBI R30,LOW(-_symbols*2)
 	SBCI R31,HIGH(-_symbols*2)
@@ -1821,6 +1823,9 @@ _usart_rx_isr:
 	ST   -Y,R31
 	IN   R30,SREG
 	ST   -Y,R30
+	LDS  R30,_dataCounter
+	SUBI R30,-LOW(1)
+	STS  _dataCounter,R30
 	LDS  R26,_rs485_timeout_counter
 	CPI  R26,LOW(0xA)
 	BRLO _0x41
@@ -1828,13 +1833,15 @@ _usart_rx_isr:
 	STS  _input_buffer_counter,R30
 _0x41:
 	SBRC R2,3
-	RJMP _0x171
-	LDS  R26,_input_buffer_counter
-	LDI  R27,0
-	SUBI R26,LOW(-_input_buffer)
-	SBCI R27,HIGH(-_input_buffer)
+	RJMP _0x174
 	IN   R30,0xC
-	ST   X,R30
+	STS  _dataByte,R30
+	LDS  R30,_input_buffer_counter
+	LDI  R31,0
+	SUBI R30,LOW(-_input_buffer)
+	SBCI R31,HIGH(-_input_buffer)
+	LDS  R26,_dataByte
+	STD  Z+0,R26
 	LDS  R30,_input_buffer_counter
 	SUBI R30,-LOW(1)
 	STS  _input_buffer_counter,R30
@@ -1870,7 +1877,7 @@ _0x45:
 	ADIW R28,2
 _0x44:
 _0x43:
-_0x171:
+_0x174:
 	LD   R30,Y+
 	OUT  SREG,R30
 	LD   R31,Y+
@@ -2326,11 +2333,11 @@ _0xAA:
 	BREQ _0xAD
 	CALL SUBOPT_0x21
 	LDI  R26,LOW(0)
-	RJMP _0x167
+	RJMP _0x16A
 _0xAD:
 	CALL SUBOPT_0x21
 	LDI  R26,LOW(1)
-_0x167:
+_0x16A:
 	STD  Z+0,R26
 	RJMP _0xAF
 _0xAC:
@@ -2338,11 +2345,11 @@ _0xAC:
 	BREQ _0xB0
 	CALL SUBOPT_0x21
 	LDI  R26,LOW(2)
-	RJMP _0x168
+	RJMP _0x16B
 _0xB0:
 	CALL SUBOPT_0x21
 	LDI  R26,LOW(0)
-_0x168:
+_0x16B:
 	STD  Z+0,R26
 _0xAF:
 	LDD  R30,Y+2
@@ -2715,42 +2722,9 @@ _rs485_half_response:
 	RCALL _rs485_transmit_first_byte
 	RET
 ; .FEND
-_rs485_write_eeprom:
-; .FSTART _rs485_write_eeprom
-	ST   -Y,R27
-	ST   -Y,R26
-	ST   -Y,R17
 ;	line_index -> Y+3
 ;	*data -> Y+1
 ;	i -> R17
-	LDI  R17,LOW(0)
-_0xEA:
-	CPI  R17,16
-	BRSH _0xEB
-	SUBI R17,-1
-	RJMP _0xEA
-_0xEB:
-	LDI  R17,LOW(5)
-_0xED:
-	CPI  R17,23
-	BRSH _0xEE
-	MOV  R26,R17
-	LDI  R27,0
-	SUBI R26,LOW(-_output_buffer)
-	SBCI R27,HIGH(-_output_buffer)
-	MOV  R30,R17
-	LDI  R31,0
-	SUBI R30,LOW(-_input_buffer)
-	SBCI R31,HIGH(-_input_buffer)
-	LD   R30,Z
-	ST   X,R30
-	SUBI R17,-1
-	RJMP _0xED
-_0xEE:
-	RCALL _rs485_half_response
-	LDD  R17,Y+0
-	RJMP _0x20C0001
-; .FEND
 _rs485_read_eeprom:
 ; .FSTART _rs485_read_eeprom
 	ST   -Y,R26
@@ -2758,9 +2732,9 @@ _rs485_read_eeprom:
 ;	line_index -> Y+1
 ;	i -> R17
 	LDI  R17,LOW(0)
-_0xF0:
+_0xF1:
 	CPI  R17,16
-	BRSH _0xF1
+	BRSH _0xF2
 	MOV  R30,R17
 	LDI  R31,0
 	__ADDW1MN _output_buffer,5
@@ -2777,23 +2751,12 @@ _0xF0:
 	MOVW R26,R22
 	ST   X,R30
 	SUBI R17,-1
-	RJMP _0xF0
-_0xF1:
+	RJMP _0xF1
+_0xF2:
 	RCALL _rs485_half_response
 	LDD  R17,Y+0
 _0x20C0002:
 	ADIW R28,2
-	RET
-; .FEND
-_rs485_read_swithes_state:
-; .FSTART _rs485_read_swithes_state
-	LDS  R30,_reg_165_1
-	__PUTB1MN _output_buffer,5
-	LDS  R30,_reg_165_2
-	__PUTB1MN _output_buffer,6
-	LDS  R30,_reg_165_3
-	__PUTB1MN _output_buffer,7
-	RCALL _rs485_half_response
 	RET
 ; .FEND
 _rs485_frame_process:
@@ -2808,7 +2771,7 @@ _rs485_frame_process:
 	MOV  R16,R30
 	__POINTWRMN 18,19,_input_buffer,5
 	SBRS R2,3
-	RJMP _0xF2
+	RJMP _0xF3
 	CLT
 	BLD  R2,3
 	MOV  R30,R17
@@ -2816,27 +2779,52 @@ _rs485_frame_process:
 	CPI  R30,LOW(0x1)
 	LDI  R26,HIGH(0x1)
 	CPC  R31,R26
-	BRNE _0xF6
-	ST   -Y,R16
-	MOVW R26,R18
-	RCALL _rs485_write_eeprom
-	RJMP _0xF5
-_0xF6:
+	BREQ _0xF6
 	CPI  R30,LOW(0x2)
 	LDI  R26,HIGH(0x2)
 	CPC  R31,R26
-	BRNE _0xF7
+	BRNE _0xF8
 	MOV  R26,R16
 	RCALL _rs485_read_eeprom
-	RJMP _0xF5
-_0xF7:
+	RJMP _0xF6
+_0xF8:
 	CPI  R30,LOW(0x3)
 	LDI  R26,HIGH(0x3)
 	CPC  R31,R26
-	BRNE _0xF9
-	RCALL _rs485_read_swithes_state
-	RJMP _0xF5
-_0xF9:
+	BREQ _0xF6
+	CPI  R30,LOW(0x4)
+	LDI  R26,HIGH(0x4)
+	CPC  R31,R26
+	BRNE _0xFB
+	MOVW R26,R18
+	LD   R30,X
+	LDI  R31,0
+	STS  _display_overridden_flag,R30
+	STS  _display_overridden_flag+1,R31
+	MOVW R30,R18
+	LDD  R30,Z+1
+	LDI  R31,0
+	STS  _display_overridden,R30
+	STS  _display_overridden+1,R31
+	__POINTW2MN _display_overridden,2
+	MOVW R30,R18
+	LDD  R30,Z+2
+	LDI  R31,0
+	ST   X+,R30
+	ST   X,R31
+	__POINTW2MN _display_overridden,4
+	MOVW R30,R18
+	LDD  R30,Z+3
+	LDI  R31,0
+	ST   X+,R30
+	ST   X,R31
+	__POINTW2MN _display_overridden,6
+	MOVW R30,R18
+	LDD  R30,Z+4
+	LDI  R31,0
+	ST   X+,R30
+	ST   X,R31
+_0xFB:
 	LDI  R30,LOW(49)
 	__PUTB1MN _output_buffer,5
 	LDI  R30,LOW(50)
@@ -2844,8 +2832,8 @@ _0xF9:
 	LDI  R30,LOW(51)
 	__PUTB1MN _output_buffer,7
 	RCALL _rs485_half_response
-_0xF5:
-_0xF2:
+_0xF6:
+_0xF3:
 	CALL __LOADLOCR4
 _0x20C0001:
 	ADIW R28,4
@@ -2935,11 +2923,11 @@ _registers:
 	LDI  R30,LOW(0)
 	STD  Y+0,R30
 	STD  Y+0+1,R30
-_0xFB:
+_0xFD:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,16
-	BRGE _0xFC
+	BRGE _0xFE
 	LD   R30,Y
 	LDD  R31,Y+1
 	LDI  R26,LOW(_timers)
@@ -2953,8 +2941,8 @@ _0xFB:
 	ST   X+,R30
 	ST   X,R31
 	CALL SUBOPT_0x2F
-	RJMP _0xFB
-_0xFC:
+	RJMP _0xFD
+_0xFE:
 	ADIW R28,2
 	LDI  R26,LOW(_settings)
 	LDI  R27,HIGH(_settings)
@@ -4209,11 +4197,11 @@ _buttons_functions:
 ; .FSTART _buttons_functions
 	TST  R8
 	BRNE PC+2
-	RJMP _0xFD
+	RJMP _0xFF
 	LDS  R30,_Keyboard_inactive
 	CPI  R30,0
 	BREQ PC+2
-	RJMP _0xFE
+	RJMP _0x100
 	LDI  R30,LOW(255)
 	STS  _sec_error_counter,R30
 	LDI  R30,LOW(2000)
@@ -4222,66 +4210,66 @@ _buttons_functions:
 	STS  _Back_to_main_menu_counter+1,R31
 	LDS  R26,_Buttons_debouncing_counter
 	CPI  R26,LOW(0x5)
-	BRSH _0xFF
+	BRSH _0x101
 	LDS  R30,_Buttons_debouncing_counter
 	SUBI R30,-LOW(1)
 	STS  _Buttons_debouncing_counter,R30
-	RJMP _0x100
-_0xFF:
+	RJMP _0x102
+_0x101:
 	LDI  R30,LOW(16)
 	CP   R30,R8
-	BRNE _0x101
+	BRNE _0x103
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
 	LDS  R26,_menu
 	CPI  R26,LOW(0xA)
-	BRSH _0x102
+	BRSH _0x104
 	LDS  R30,_menu
 	SUBI R30,-LOW(1)
-	RJMP _0x169
-_0x102:
+	RJMP _0x16C
+_0x104:
 	LDI  R30,LOW(0)
-_0x169:
+_0x16C:
 	STS  _menu,R30
-_0x101:
+_0x103:
 	LDS  R30,_menu
 	CPI  R30,0
 	BREQ PC+2
-	RJMP _0x104
+	RJMP _0x106
 	LDI  R30,LOW(1)
 	CP   R30,R8
-	BRNE _0x105
+	BRNE _0x107
 	CALL SUBOPT_0x30
 	CPI  R30,0
-	BREQ _0x106
+	BREQ _0x108
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
 	SET
 	BLD  R2,1
 	CALL SUBOPT_0x30
 	CPI  R30,LOW(0x6)
-	BRSH _0x107
+	BRSH _0x109
 	CALL SUBOPT_0x30
 	LDI  R31,0
 	LDI  R26,LOW(12000)
 	LDI  R27,HIGH(12000)
 	CALL __MULW12
-	RJMP _0x16A
-_0x107:
+	RJMP _0x16D
+_0x109:
 	LDI  R26,LOW(2)
 	LDI  R27,HIGH(2)
 	LDI  R30,LOW(5)
 	CALL __EEPROMWRB
 	LDI  R30,LOW(60000)
 	LDI  R31,HIGH(60000)
-_0x16A:
+_0x16D:
 	STS  _switching_relay_off_prohibited_counter,R30
 	STS  _switching_relay_off_prohibited_counter+1,R31
-_0x106:
-_0x105:
+_0x108:
+_0x107:
 	LDI  R30,LOW(2)
 	CP   R30,R8
-	BRNE _0x109
+	BRNE _0x10B
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
 	CLT
@@ -4289,80 +4277,65 @@ _0x105:
 	LDI  R30,LOW(0)
 	STS  _switching_relay_off_prohibited_counter,R30
 	STS  _switching_relay_off_prohibited_counter+1,R30
-_0x109:
+_0x10B:
 	LDI  R30,LOW(4)
 	CP   R30,R8
-	BRNE _0x10A
+	BRNE _0x10C
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
 	LDI  R30,LOW(0)
 	STS  _OFF_timer,R30
 	STS  _OFF_timer+1,R30
-_0x10A:
+_0x10C:
 	LDI  R30,LOW(8)
 	CP   R30,R8
-	BRNE _0x10B
+	BRNE _0x10D
 	CALL SUBOPT_0x31
 	CPI  R30,0
-	BREQ _0x10C
+	BREQ _0x10E
 	CALL SUBOPT_0x31
 	CPI  R30,LOW(0xFF)
-	BREQ _0x10D
+	BREQ _0x10F
 	LDI  R26,LOW(3)
 	LDI  R27,HIGH(3)
 	CALL __EEPROMRDB
 	CPI  R30,LOW(0x6)
-	BRSH _0x10E
+	BRSH _0x110
 	CALL __EEPROMRDB
 	LDI  R31,0
 	LDI  R26,LOW(12000)
 	LDI  R27,HIGH(12000)
 	CALL __MULW12
-	RJMP _0x16B
-_0x10E:
+	RJMP _0x16E
+_0x110:
 	LDI  R26,LOW(3)
 	LDI  R27,HIGH(3)
 	LDI  R30,LOW(5)
 	CALL __EEPROMWRB
 	LDI  R30,LOW(60000)
 	LDI  R31,HIGH(60000)
-_0x16B:
+_0x16E:
 	STS  _OFF_timer,R30
 	STS  _OFF_timer+1,R31
-_0x10D:
-	RJMP _0x110
-_0x10C:
+_0x10F:
+	RJMP _0x112
+_0x10E:
 	CALL SUBOPT_0x32
-_0x110:
-_0x10B:
-_0x104:
+_0x112:
+_0x10D:
+_0x106:
 	LDS  R26,_menu
 	CPI  R26,LOW(0x4)
 	BREQ PC+2
-	RJMP _0x111
+	RJMP _0x113
 	MOV  R30,R8
 	LDI  R31,0
 	CPI  R30,LOW(0x1)
 	LDI  R26,HIGH(0x1)
 	CPC  R31,R26
-	BRNE _0x115
-	LDS  R30,_hour
-	SUBI R30,-LOW(10)
-	STS  _hour,R30
-	LDS  R26,_hour
-	CPI  R26,LOW(0x18)
-	BRLO _0x116
-	LDI  R30,LOW(0)
-	STS  _hour,R30
-_0x116:
-	RJMP _0x16C
-_0x115:
-	CPI  R30,LOW(0x2)
-	LDI  R26,HIGH(0x2)
-	CPC  R31,R26
 	BRNE _0x117
 	LDS  R30,_hour
-	SUBI R30,-LOW(1)
+	SUBI R30,-LOW(10)
 	STS  _hour,R30
 	LDS  R26,_hour
 	CPI  R26,LOW(0x18)
@@ -4370,29 +4343,29 @@ _0x115:
 	LDI  R30,LOW(0)
 	STS  _hour,R30
 _0x118:
-	RJMP _0x16C
+	RJMP _0x16F
 _0x117:
+	CPI  R30,LOW(0x2)
+	LDI  R26,HIGH(0x2)
+	CPC  R31,R26
+	BRNE _0x119
+	LDS  R30,_hour
+	SUBI R30,-LOW(1)
+	STS  _hour,R30
+	LDS  R26,_hour
+	CPI  R26,LOW(0x18)
+	BRLO _0x11A
+	LDI  R30,LOW(0)
+	STS  _hour,R30
+_0x11A:
+	RJMP _0x16F
+_0x119:
 	CPI  R30,LOW(0x4)
 	LDI  R26,HIGH(0x4)
 	CPC  R31,R26
-	BRNE _0x119
+	BRNE _0x11B
 	LDS  R30,_minute
 	SUBI R30,-LOW(10)
-	STS  _minute,R30
-	LDS  R26,_minute
-	CPI  R26,LOW(0x3C)
-	BRLO _0x11A
-	LDI  R30,LOW(0)
-	STS  _minute,R30
-_0x11A:
-	RJMP _0x16C
-_0x119:
-	CPI  R30,LOW(0x8)
-	LDI  R26,HIGH(0x8)
-	CPC  R31,R26
-	BRNE _0x114
-	LDS  R30,_minute
-	SUBI R30,-LOW(1)
 	STS  _minute,R30
 	LDS  R26,_minute
 	CPI  R26,LOW(0x3C)
@@ -4400,10 +4373,25 @@ _0x119:
 	LDI  R30,LOW(0)
 	STS  _minute,R30
 _0x11C:
-_0x16C:
+	RJMP _0x16F
+_0x11B:
+	CPI  R30,LOW(0x8)
+	LDI  R26,HIGH(0x8)
+	CPC  R31,R26
+	BRNE _0x116
+	LDS  R30,_minute
+	SUBI R30,-LOW(1)
+	STS  _minute,R30
+	LDS  R26,_minute
+	CPI  R26,LOW(0x3C)
+	BRLO _0x11E
+	LDI  R30,LOW(0)
+	STS  _minute,R30
+_0x11E:
+_0x16F:
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
-_0x114:
+_0x116:
 	CALL SUBOPT_0x2A
 	CALL SUBOPT_0x33
 	LDS  R26,_minute
@@ -4411,16 +4399,16 @@ _0x114:
 	LDS  R26,_hour
 	CALL SUBOPT_0x2B
 	CALL _i2c_stop
-_0x111:
+_0x113:
 	LDS  R26,_menu
 	CPI  R26,LOW(0x5)
-	BRNE _0x11E
+	BRNE _0x120
 	LDI  R30,LOW(12)
 	CP   R30,R8
-	BREQ _0x11F
-_0x11E:
-	RJMP _0x11D
-_0x11F:
+	BREQ _0x121
+_0x120:
+	RJMP _0x11F
+_0x121:
 	LDI  R30,LOW(20)
 	STS  _Keyboard_inactive,R30
 	LDI  R30,LOW(0)
@@ -4432,53 +4420,63 @@ _0x11F:
 	LDS  R26,_hour
 	CALL SUBOPT_0x2B
 	CALL _i2c_stop
-_0x11D:
+_0x11F:
+_0x102:
 _0x100:
-_0xFE:
-	RJMP _0x120
-_0xFD:
+	RJMP _0x122
+_0xFF:
 	LDS  R26,_Buttons_debouncing_counter
 	CPI  R26,LOW(0x1)
-	BRLO _0x121
+	BRLO _0x123
 	LDS  R30,_Buttons_debouncing_counter
 	SUBI R30,LOW(1)
 	STS  _Buttons_debouncing_counter,R30
-_0x121:
-_0x120:
+_0x123:
+_0x122:
 	RET
 ; .FEND
 ;#include <indication.h>
 _indication:
 ; .FSTART _indication
+	LDS  R30,_display_overridden_flag
+	LDS  R31,_display_overridden_flag+1
+	SBIW R30,0
+	BREQ _0x124
+	LDS  R4,_display_overridden
+	__GETBRMN 7,_display_overridden,2
+	__GETBRMN 6,_display_overridden,4
+	__GETBRMN 9,_display_overridden,6
+	RET
+_0x124:
 	LDS  R11,_menu
 	LDS  R30,_menu
 	LDI  R31,0
 	SBIW R30,0
 	BREQ PC+2
-	RJMP _0x125
+	RJMP _0x128
 	SBRC R2,1
-	RJMP _0x127
+	RJMP _0x12A
 	CALL SUBOPT_0x3
 	SBIW R26,0
-	BREQ _0x128
-_0x127:
-	RJMP _0x126
-_0x128:
+	BREQ _0x12B
+_0x12A:
+	RJMP _0x129
+_0x12B:
 	LDS  R30,_error
 	CPI  R30,0
-	BRNE _0x129
+	BRNE _0x12C
 	CALL SUBOPT_0x34
-	RJMP _0x16D
-_0x129:
+	RJMP _0x170
+_0x12C:
 	LDS  R26,_error_blinking_counter
 	LDS  R27,_error_blinking_counter+1
 	CPI  R26,LOW(0xC8)
 	LDI  R30,HIGH(0xC8)
 	CPC  R27,R30
-	BRLO _0x12B
+	BRLO _0x12E
 	CALL SUBOPT_0x34
-	RJMP _0x16D
-_0x12B:
+	RJMP _0x170
+_0x12E:
 	LDI  R30,LOW(18)
 	MOV  R4,R30
 	LDI  R30,LOW(19)
@@ -4493,18 +4491,18 @@ _0x12B:
 	LDS  R26,_error
 	SUB  R26,R30
 	MOV  R9,R26
-_0x16D:
+_0x170:
 	CLT
 	BLD  R2,0
-_0x126:
+_0x129:
 	SBRS R2,1
-	RJMP _0x12E
+	RJMP _0x131
 	CALL SUBOPT_0x3
 	SBIW R26,0
-	BREQ _0x12F
-_0x12E:
-	RJMP _0x12D
-_0x12F:
+	BREQ _0x132
+_0x131:
+	RJMP _0x130
+_0x132:
 	LDS  R26,_switching_relay_off_prohibited_counter
 	LDS  R27,_switching_relay_off_prohibited_counter+1
 	CALL SUBOPT_0x36
@@ -4515,23 +4513,23 @@ _0x12F:
 	MOV  R9,R26
 	LDI  R30,LOW(50)
 	CP   R10,R30
-	BRLO _0x131
+	BRLO _0x134
 	LDI  R30,LOW(99)
 	CP   R30,R10
-	BRSH _0x132
+	BRSH _0x135
 	LDI  R30,LOW(150)
 	CP   R10,R30
-	BRLO _0x131
-_0x132:
-	RJMP _0x130
-_0x131:
+	BRLO _0x134
+_0x135:
+	RJMP _0x133
+_0x134:
 	LDI  R30,LOW(2)
 	MOV  R11,R30
+_0x133:
 _0x130:
-_0x12D:
 	CALL SUBOPT_0x3
 	CALL __CPW02
-	BRSH _0x135
+	BRSH _0x138
 	CALL SUBOPT_0x3
 	CALL SUBOPT_0x36
 	LDI  R30,LOW(21)
@@ -4541,46 +4539,46 @@ _0x12D:
 	MOV  R9,R26
 	LDI  R30,LOW(50)
 	CP   R10,R30
-	BRLO _0x137
+	BRLO _0x13A
 	LDI  R30,LOW(99)
 	CP   R30,R10
-	BRSH _0x138
+	BRSH _0x13B
 	LDI  R30,LOW(150)
 	CP   R10,R30
-	BRLO _0x137
-_0x138:
-	RJMP _0x136
-_0x137:
+	BRLO _0x13A
+_0x13B:
+	RJMP _0x139
+_0x13A:
 	LDI  R30,LOW(4)
 	MOV  R11,R30
-_0x136:
-_0x135:
-	RJMP _0x124
-_0x125:
+_0x139:
+_0x138:
+	RJMP _0x127
+_0x128:
 	CPI  R30,LOW(0x1)
 	LDI  R26,HIGH(0x1)
 	CPC  R31,R26
-	BRNE _0x13B
+	BRNE _0x13E
 	SBIW R28,2
 	CALL SUBOPT_0x1D
 ;	i -> Y+0
 	LDS  R30,_reg_165_1
 	CALL SUBOPT_0x38
-_0x13D:
+_0x140:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x13E
+	BRGE _0x141
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x13F
+	BREQ _0x142
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x13F:
+_0x142:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x13D
-_0x13E:
+	RJMP _0x140
+_0x141:
 	ADIW R28,2
 	LDS  R4,_TMP_1_16_bit
 	SBIW R28,2
@@ -4588,29 +4586,29 @@ _0x13E:
 ;	i -> Y+0
 	LDS  R30,_reg_165_1
 	CALL SUBOPT_0x3B
-_0x141:
+_0x144:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x142
+	BRGE _0x145
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x143
+	BREQ _0x146
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x143:
+_0x146:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x141
-_0x142:
+	RJMP _0x144
+_0x145:
 	ADIW R28,2
 	LDS  R7,_TMP_1_16_bit
-	RJMP _0x16E
-_0x13B:
+	RJMP _0x171
+_0x13E:
 	CPI  R30,LOW(0x2)
 	LDI  R26,HIGH(0x2)
 	CPC  R31,R26
-	BRNE _0x144
+	BRNE _0x147
 	LDI  R30,LOW(17)
 	MOV  R4,R30
 	SBIW R28,2
@@ -4618,21 +4616,21 @@ _0x13B:
 ;	i -> Y+0
 	LDS  R30,_reg_165_2
 	CALL SUBOPT_0x38
-_0x146:
+_0x149:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x147
+	BRGE _0x14A
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x148
+	BREQ _0x14B
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x148:
+_0x14B:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x146
-_0x147:
+	RJMP _0x149
+_0x14A:
 	ADIW R28,2
 	LDS  R7,_TMP_1_16_bit
 	SBIW R28,2
@@ -4640,50 +4638,50 @@ _0x147:
 ;	i -> Y+0
 	LDS  R30,_reg_165_2
 	CALL SUBOPT_0x3B
-_0x14A:
+_0x14D:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x14B
+	BRGE _0x14E
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x14C
+	BREQ _0x14F
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x14C:
+_0x14F:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x14A
-_0x14B:
+	RJMP _0x14D
+_0x14E:
 	ADIW R28,2
 	LDS  R6,_TMP_1_16_bit
-	RJMP _0x16F
-_0x144:
+	RJMP _0x172
+_0x147:
 	CPI  R30,LOW(0x3)
 	LDI  R26,HIGH(0x3)
 	CPC  R31,R26
-	BRNE _0x14D
+	BRNE _0x150
 	CALL SUBOPT_0x2C
 	SBIW R28,2
 	CALL SUBOPT_0x1D
 ;	i -> Y+0
 	LDS  R30,_reg_165_3
 	CALL SUBOPT_0x38
-_0x14F:
+_0x152:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x150
+	BRGE _0x153
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x151
+	BREQ _0x154
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x151:
+_0x154:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x14F
-_0x150:
+	RJMP _0x152
+_0x153:
 	ADIW R28,2
 	LDS  R6,_TMP_1_16_bit
 	SBIW R28,2
@@ -4691,29 +4689,29 @@ _0x150:
 ;	i -> Y+0
 	LDS  R30,_reg_165_3
 	CALL SUBOPT_0x3B
-_0x153:
+_0x156:
 	LD   R26,Y
 	LDD  R27,Y+1
 	SBIW R26,4
-	BRGE _0x154
+	BRGE _0x157
 	LDS  R30,_TMP_2_16_bit
 	ANDI R30,LOW(0x8)
-	BREQ _0x155
+	BREQ _0x158
 	CALL SUBOPT_0xF
 	CALL SUBOPT_0x39
-_0x155:
+_0x158:
 	CALL SUBOPT_0x3A
 	CALL SUBOPT_0x2F
-	RJMP _0x153
-_0x154:
+	RJMP _0x156
+_0x157:
 	ADIW R28,2
 	LDS  R9,_TMP_1_16_bit
-	RJMP _0x170
-_0x14D:
+	RJMP _0x173
+_0x150:
 	CPI  R30,LOW(0x4)
 	LDI  R26,HIGH(0x4)
 	CPC  R31,R26
-	BRNE _0x156
+	BRNE _0x159
 	LDS  R26,_hour
 	LDI  R30,LOW(100)
 	MUL  R30,R26
@@ -4763,12 +4761,12 @@ _0x14D:
 	MOV  R26,R22
 	SUB  R26,R30
 	MOV  R9,R26
-	RJMP _0x124
-_0x156:
+	RJMP _0x127
+_0x159:
 	CPI  R30,LOW(0x5)
 	LDI  R26,HIGH(0x5)
 	CPC  R31,R26
-	BRNE _0x158
+	BRNE _0x15B
 	LDS  R30,_sec
 	LDI  R31,0
 	CALL SUBOPT_0x3C
@@ -4782,19 +4780,19 @@ _0x156:
 	LDS  R26,_TMP_1_16_bit
 	SUB  R26,R30
 	MOV  R9,R26
-	RJMP _0x124
-_0x158:
+	RJMP _0x127
+_0x15B:
 	CALL SUBOPT_0x2C
-_0x16E:
+_0x171:
 	LDI  R30,LOW(17)
 	MOV  R6,R30
-_0x16F:
+_0x172:
 	LDI  R30,LOW(17)
 	MOV  R9,R30
-_0x170:
+_0x173:
 	CLT
 	BLD  R2,0
-_0x124:
+_0x127:
 	RET
 ; .FEND
 ;
@@ -4816,7 +4814,7 @@ _main:
 ; 0000 00D1 
 ; 0000 00D2 
 ; 0000 00D3 while (1)
-_0x15D:
+_0x160:
 ; 0000 00D4       {
 ; 0000 00D5         rs485_frame_process();
 	CALL _rs485_frame_process
@@ -4847,13 +4845,13 @@ _0x15D:
 	LDS  R30,_sec_oldstate
 	LDS  R26,_sec
 	CP   R30,R26
-	BREQ _0x160
+	BREQ _0x163
 ; 0000 00EB         {
 ; 0000 00EC             sec_error_counter = sec_error_counter_value;
 	LDI  R30,LOW(255)
 	STS  _sec_error_counter,R30
 ; 0000 00ED         };
-_0x160:
+_0x163:
 ; 0000 00EE 
 ; 0000 00EF         sec_oldstate = sec;
 	LDS  R30,_sec
@@ -4890,13 +4888,13 @@ _0x160:
 ; 0000 0100         if(error>99)
 	LDS  R26,_error
 	CPI  R26,LOW(0x64)
-	BRLO _0x161
+	BRLO _0x164
 ; 0000 0101         {
 ; 0000 0102             error=99;
 	LDI  R30,LOW(99)
 	STS  _error,R30
 ; 0000 0103         };
-_0x161:
+_0x164:
 ; 0000 0104         indication();
 	RCALL _indication
 ; 0000 0105 
@@ -4924,19 +4922,19 @@ _0x161:
 ; 0000 011B         if(OFF_timer>0 && OFF_timer<30)
 	CALL SUBOPT_0x3
 	CALL __CPW02
-	BRSH _0x163
+	BRSH _0x166
 	CALL SUBOPT_0x3
 	SBIW R26,30
-	BRLO _0x164
-_0x163:
-	RJMP _0x162
-_0x164:
+	BRLO _0x167
+_0x166:
+	RJMP _0x165
+_0x167:
 ; 0000 011C         {
 ; 0000 011D             relays_16_oldstate = 0;
 	CALL SUBOPT_0x32
 ; 0000 011E             relays_16 = 0;
 ; 0000 011F         };
-_0x162:
+_0x165:
 ; 0000 0120 
 ; 0000 0121         relay_high = relays_16 >> 8;
 	LDS  R30,_relays_16+1
@@ -4950,27 +4948,11 @@ _0x162:
 ; 0000 0124         spi(relay_high);
 	LDS  R26,_relay_high
 	CALL _spi
-; 0000 0125 
-; 0000 0126 
-; 0000 0127 
-; 0000 0128 
-; 0000 0129 
-; 0000 012A 
-; 0000 012B 
-; 0000 012C 
-; 0000 012D 
-; 0000 012E 
-; 0000 012F 
-; 0000 0130 
-; 0000 0131 
-; 0000 0132 
-; 0000 0133 
-; 0000 0134 
-; 0000 0135       }
-	RJMP _0x15D
-; 0000 0136 }
-_0x165:
-	RJMP _0x165
+; 0000 0125       }
+	RJMP _0x160
+; 0000 0126 }
+_0x168:
+	RJMP _0x168
 ; .FEND
 
 	.CSEG
@@ -5201,10 +5183,18 @@ _input_buffer_counter:
 	.BYTE 0x1
 _input_buffer:
 	.BYTE 0x18
+_dataByte:
+	.BYTE 0x1
 _output_buffer_counter:
 	.BYTE 0x1
 _output_buffer:
 	.BYTE 0x18
+_display_overridden_flag:
+	.BYTE 0x2
+_display_overridden:
+	.BYTE 0x8
+_dataCounter:
+	.BYTE 0x1
 
 	.CSEG
 ;OPTIMIZER ADDED SUBROUTINE, CALLED 2 TIMES, CODE SIZE REDUCTION:5 WORDS

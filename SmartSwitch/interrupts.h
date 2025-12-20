@@ -156,13 +156,19 @@ char input_buffer_counter = 0;
 char input_buffer[FRAME_SIZE];
 bit frame_received = 0;
 
+char dataByte = 0;
 char output_buffer_counter = 0;
 char output_buffer[FRAME_SIZE];
+
+int display_overridden_flag = 0;
+int display_overridden[4];
+
+char dataCounter = 0;
 
 // USART Receiver interrupt service routine
 interrupt [USART_RXC] void usart_rx_isr(void)                                        
 {
-    
+    dataCounter++;
     if (rs485_timeout_counter >= 10)
     {
         input_buffer_counter = 0;
@@ -173,9 +179,8 @@ interrupt [USART_RXC] void usart_rx_isr(void)
         return; // Last frame is being processed
     }
     
-    
-    
-    input_buffer[input_buffer_counter] = UDR;
+    dataByte = UDR;
+    input_buffer[input_buffer_counter] = dataByte;
     input_buffer_counter++;
     rs485_timeout_counter = 0;
     

@@ -1,5 +1,14 @@
 void indication ()
 {
+    // Display Overriding 
+    if (display_overridden_flag)
+    {
+        digit_1 = display_overridden[0];
+        digit_2 = display_overridden[1];
+        digit_3 = display_overridden[2];
+        digit_4 = display_overridden[3];
+        return;
+    }
         LEDs = menu;
         switch (menu) 
         {
