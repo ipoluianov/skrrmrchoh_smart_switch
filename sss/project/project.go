@@ -223,3 +223,41 @@ func (c *Project) DisplayTextForMinutes(minutesStr string) string {
 	}
 	return minStr
 }
+
+func (c *Project) SetDisplayTextForRelayIndex(relayIndex int, text string) {
+	if relayIndex < 0 || relayIndex >= 16 {
+		return
+	}
+	c.Settings[relayIndex] = text
+}
+
+func (c *Project) SetDisplayTextForSwitchIndex(switchIndex int, text string) {
+	if switchIndex < 0 || switchIndex >= 24 {
+		return
+	}
+	c.Settings[16+switchIndex] = text
+}
+
+func (c *Project) GetInversion() int {
+	return c.Inversion
+}
+
+func (c *Project) GetEscortBlock() int {
+	return c.EscortBlock
+}
+
+func (c *Project) GetEscortTimer() int {
+	return c.EscortTimer
+}
+
+func (c *Project) SetInversion(value int) {
+	c.Inversion = value
+}
+
+func (c *Project) SetEscortBlock(value int) {
+	c.EscortBlock = value
+}
+
+func (c *Project) SetEscortTimer(value int) {
+	c.EscortTimer = value
+}

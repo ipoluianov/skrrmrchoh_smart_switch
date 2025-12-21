@@ -29,6 +29,10 @@ func NewCenterPanel() *CenterPanel {
 	c.settingsWidget = settingswidget.NewSettingsWidget()
 	c.eepromWidget = eepromwidget.NewEepromWidget()
 
+	c.settingsWidget.OnChanged = func() {
+		c.relaysWidget.LoadData()
+	}
+
 	return &c
 }
 

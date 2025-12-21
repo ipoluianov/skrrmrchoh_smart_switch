@@ -19,5 +19,5 @@ func main() {
 	form.SetTitle("Skrrmrchoh Smart Switch")
 	form.SetSize(1300, 800)
 	form.Panel().AddWidgetOnGrid(mainform.NewMainForm(), 0, 0)
-	form.Exec()
+	form.ExecMaximized()
 }
