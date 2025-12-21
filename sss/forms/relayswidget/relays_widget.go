@@ -197,17 +197,66 @@ func (c *RelaysWidget) onKeyDown(key nuikey.Key, mods nuikey.KeyModifiers) bool 
 
 		if col == 1 || col == 3 || col == 5 || col == 7 {
 			currentValue := c.lvItems.GetCellText2(row, col)
-			c.SelectFront(row, col, currentValue)
+			options := []Option{
+				{"1", "ВКЛ"},
+				{"2", "ОТКЛ"},
+				{"", "ПУСТО"},
+			}
+			c.SelectOptions(row, col, currentValue, options)
 			return true
 		}
+
+		if col == 2 || col == 4 {
+			currentValue := c.lvItems.GetCellText2(row, col)
+			options := make([]Option, 0)
+			for i := 0; i <= 23; i++ {
+				options = append(options, Option{strconv.Itoa(i), project.CurrentProject.DisplayTextForSwitchIndex(strconv.Itoa(i))})
+			}
+			options = append(options, Option{"", "ПУСТО"})
+			c.SelectOptions(row, col, currentValue, options)
+			return true
+		}
+
+		if col == 6 || col == 8 {
+			currentValue := c.lvItems.GetCellText2(row, col)
+			options := make([]Option, 0)
+			for i := 0; i <= 15; i++ {
+				options = append(options, Option{strconv.Itoa(i), project.CurrentProject.DisplayTextForRelayIndex(strconv.Itoa(i))})
+			}
+			options = append(options, Option{"", "ПУСТО"})
+			c.SelectOptions(row, col, currentValue, options)
+			return true
+		}
+
 	}
+
+	if key == nuikey.Key0 || key == nuikey.Key1 || key == nuikey.Key2 || key == nuikey.Key3 || key == nuikey.Key4 ||
+		key == nuikey.Key5 || key == nuikey.Key6 || key == nuikey.Key7 || key == nuikey.Key8 || key == nuikey.Key9 {
+		col := c.lvItems.CurrentColumn()
+		row := c.lvItems.CurrentRow()
+		if (col == 1 || col == 3 || col == 5 || col == 7) && (key == nuikey.Key1 || key == nuikey.Key2) {
+			if key == nuikey.Key1 {
+				c.lvItems.SetCellText2(row, col, "1")
+			} else if key == nuikey.Key2 {
+				c.lvItems.SetCellText2(row, col, "2")
+			}
+		}
+
+		return false
+	}
+
 	return false
 }
 
-func (c *RelaysWidget) SelectFront(rowIndex int, columnIndex int, currentValue string) {
+type Option struct {
+	Code        string
+	Description string
+}
+
+func (c *RelaysWidget) SelectOptions(rowIndex int, columnIndex int, currentValue string, options []Option) {
 	widgetToFocusAfterClose := ui.MainForm.FocusedWidget()
 
-	dialog := ui.NewDialog("Выбор фронта", 300, 400)
+	dialog := ui.NewDialog("Выбор фронта", 400, 650)
 	dialog.ContentPanel().SetLayout(`
 <column>
 	<table id="lvItems" />
@@ -224,15 +273,15 @@ func (c *RelaysWidget) SelectFront(rowIndex int, columnIndex int, currentValue s
 	lvItems.SetColumnName(0, "Код")
 	lvItems.SetColumnName(1, "Описание")
 	lvItems.SetColumnWidth(0, 50)
-	lvItems.SetColumnWidth(1, 200)
-	lvItems.SetRowCount(3)
+	lvItems.SetColumnWidth(1, 300)
+	lvItems.SetRowCount(len(options))
+	lvItems.SetRowHeight(20)
 
-	lvItems.SetCellText2(0, 0, "1")
-	lvItems.SetCellDisplayText(0, 1, "ВКЛ")
-	lvItems.SetCellText2(1, 0, "2")
-	lvItems.SetCellDisplayText(1, 1, "ОТКЛ")
-	lvItems.SetCellText2(2, 0, "255")
-	lvItems.SetCellDisplayText(2, 1, "")
+	for i, option := range options {
+		lvItems.SetCellText2(i, 0, option.Code)
+		lvItems.SetCellDisplayText(i, 1, option.Description)
+	}
+
 	selectedRow := -1
 	for r := 0; r < lvItems.RowCount(); r++ {
 		if lvItems.GetCellText2(r, 0) == currentValue {
@@ -243,8 +292,12 @@ func (c *RelaysWidget) SelectFront(rowIndex int, columnIndex int, currentValue s
 	if selectedRow >= 0 {
 		lvItems.SetCurrentCell2(selectedRow, 0)
 	} else {
-		lvItems.SetCurrentCell2(2, 0)
+		if lvItems.RowCount() > 0 {
+			lvItems.SetCurrentCell2(lvItems.RowCount()-1, 0)
+		}
 	}
+
+	lvItems.ScrollToCell2(lvItems.CurrentRow(), 0)
 
 	accept := func() {
 		currentRow := lvItems.CurrentRow()
@@ -252,6 +305,11 @@ func (c *RelaysWidget) SelectFront(rowIndex int, columnIndex int, currentValue s
 		c.lvItems.SetCellText2(rowIndex, columnIndex, selectedValue)
 		c.lvItems.SetCellDisplayText(rowIndex, columnIndex, project.CurrentProject.DisplayTextForFront(selectedValue))
 		c.LoadData()
+		dialog.Close()
+		widgetToFocusAfterClose.Focus()
+	}
+
+	reject := func() {
 		dialog.Close()
 		widgetToFocusAfterClose.Focus()
 	}
@@ -265,13 +323,16 @@ func (c *RelaysWidget) SelectFront(rowIndex int, columnIndex int, currentValue s
 	btnCancel := dialog.ContentPanel().FindWidgetByName("btnCancel").(*ui.Button)
 	btnCancel.SetMinWidth(70)
 	btnCancel.SetOnButtonClick(func() {
-		dialog.Close()
-		widgetToFocusAfterClose.Focus()
+		reject()
 	})
 
 	lvItems.SetOnKeyDown(func(key nuikey.Key, mods nuikey.KeyModifiers) bool {
 		if key == nuikey.KeyEnter {
 			accept()
+			return true
+		}
+		if key == nuikey.KeyEsc {
+			reject()
 			return true
 		}
 		return false
