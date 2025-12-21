@@ -12,6 +12,9 @@ func main() {
 	localstorage.Init("skrrmrchoh_smart_switch")
 	logger.Init(localstorage.Path() + "/logs")
 
+	ui.ApplyLightTheme()
+	ui.ApplyBaseFontSize(16)
+
 	form := ui.NewForm()
 	form.SetTitle("Skrrmrchoh Smart Switch")
 	form.SetSize(1300, 800)

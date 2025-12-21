@@ -1,6 +1,10 @@
 package toppanel
 
-import "github.com/u00io/nuiforms/ui"
+import (
+	"sss/project"
+
+	"github.com/u00io/nuiforms/ui"
+)
 
 type TopPanel struct {
 	ui.Widget
@@ -20,11 +24,13 @@ func NewTopPanel() *TopPanel {
 		<button id="btnSettings" text="Настройки (F3)" onclick="BtnSettings" />
 		<button id="btnEeprom" text="Образ EEPROM (F4)" onclick="BtnEeprom" />
 		<hspacer />
-		<button text="Сохранить проект" onclick="BtnSaveProject" />
+		<button id="btnSaveProject" text="Сохранить проект" onclick="BtnSaveProject" />
 	</row>
 	`, &c, nil)
 
 	c.SetElevation(1)
+
+	c.AddTimer(100, c.timerUpdate)
 	return &c
 }
 
@@ -60,6 +66,13 @@ func (c *TopPanel) BtnEeprom() {
 	c.updateButtons()
 }
 
+func (c *TopPanel) BtnSaveProject() {
+	err := project.CurrentProject.SaveToFile()
+	if err != nil {
+		ui.ShowMessageBox("Ошибка", err.Error())
+	}
+}
+
 func (c *TopPanel) updateButtons() {
 	btnRelays := c.FindWidgetByName("btnRelays").(*ui.Button)
 	btnSummary := c.FindWidgetByName("btnSummary").(*ui.Button)
@@ -90,5 +103,17 @@ func (c *TopPanel) updateButtons() {
 
 	if c.mode == "eeprom" {
 		btnEeprom.SetRole("primary")
+	}
+}
+
+func (c *TopPanel) timerUpdate() {
+	hasChanged := project.HasChanged()
+	btnSaveProject := c.FindWidgetByName("btnSaveProject").(*ui.Button)
+	btnSaveProject.SetEnabled(hasChanged)
+
+	if hasChanged {
+		btnSaveProject.SetRole("primary")
+	} else {
+		btnSaveProject.SetRole("")
 	}
 }

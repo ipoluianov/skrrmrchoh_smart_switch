@@ -62,6 +62,10 @@ func (c *MainForm) onKeyDown(keyCode nuikey.Key, mods nuikey.KeyModifiers) bool 
 		c.topPanel.BtnSettings()
 	case nuikey.KeyF4:
 		c.topPanel.BtnEeprom()
+	case nuikey.KeyS:
+		if mods.Ctrl {
+			c.topPanel.BtnSaveProject()
+		}
 	default:
 		return false
 	}
