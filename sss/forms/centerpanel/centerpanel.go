@@ -47,6 +47,7 @@ func (c *CenterPanel) SetContentWidget() {
 	switch c.mode {
 	case "relays":
 		c.AddWidgetOnGrid(c.relaysWidget, 0, 0)
+		c.relaysWidget.Activate()
 	case "summary":
 		c.AddWidgetOnGrid(c.summaryWidget, 0, 0)
 	case "settings":

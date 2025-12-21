@@ -27,6 +27,9 @@ func NewRelaysWidget() *RelaysWidget {
 	`, &c, nil)
 
 	c.lvItems = c.FindWidgetByName("lvItems").(*ui.Table)
+
+	c.lvItems.SetRowHeight(24)
+
 	c.lvItems.SetColumnCount(13)
 	c.lvItems.SetColumnName(0, "Реле")
 	c.lvItems.SetColumnName(1, "Включение по")
@@ -101,8 +104,13 @@ func NewRelaysWidget() *RelaysWidget {
 	c.AddTimer(100, c.timerUpdate)
 
 	c.LoadData()
+	c.lvItems.SetCurrentCell2(0, 1)
 
 	return &c
+}
+
+func (c *RelaysWidget) Activate() {
+	c.lvItems.Focus()
 }
 
 func (c *RelaysWidget) OnCellChanged(row int, column int, text string, data interface{}) bool {
@@ -338,6 +346,8 @@ func (c *RelaysWidget) SelectOptions(rowIndex int, columnIndex int, currentValue
 		return false
 	})
 
+	lvItems.SetSelectingCell(false)
+
 	dialog.ShowDialog()
 	lvItems.Focus()
 }
@@ -348,6 +358,11 @@ func (c *RelaysWidget) LoadData() {
 	defer ui.MainForm.LayoutingBlockPop()
 	ui.MainForm.UpdateBlockPush()
 	defer ui.MainForm.UpdateBlockPop()
+
+	// Disable cell selectinh for column 0
+	for rowIndex := 0; rowIndex < c.lvItems.RowCount(); rowIndex++ {
+		c.lvItems.SetCellSelectionDisabled(rowIndex, 0, true)
+	}
 
 	// Load data from project to table
 	for relayIndex := 0; relayIndex < 16; relayIndex++ {
