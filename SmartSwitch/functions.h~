@@ -377,16 +377,22 @@ void relays_edge_detection()
 
 void switch_relay_on(char relay_index, char time_to_off)
 {
-    relays_16 = relays_16 | (1<<relay_index); //Turn the relay on 
-    if (time_to_off != 255)
+    if (relay_index >= 0 && relay_index <= 15)
     {
-        timers[relay_index] =  time_to_off * 60;
+        relays_16 = relays_16 | (1<<relay_index); //Turn the relay on 
+        if (time_to_off != 255)
+        {
+            timers[relay_index] =  time_to_off * 60;
+        }
     }
 }
 
 void switch_relay_off(char relay_index)
 {
-    relays_16 = relays_16 & ~(1<<relay_index); //Switch the relay off
+    if (relay_index >= 0 && relay_index <= 15)
+    {
+        relays_16 = relays_16 & ~(1<<relay_index); //Switch the relay off
+    }
 }
 
 void execute_EE_line(char line_index, char check_prohibition) 
@@ -566,6 +572,8 @@ const int FUNC_WRITE_EEPROM = 1;
 const int FUNC_READ_EEPROM = 2;
 const int FUNC_READ_SWITCHES_STATE = 3;
 const int FUNC_SET_DISPLAY = 4;
+const int FUNC_RELAY_ON = 5;
+const int FUNC_RELAY_OFF = 6;
 
 void rs485_half_response()
 {
@@ -593,8 +601,6 @@ void rs485_write_eeprom(unsigned char line_index, unsigned char * data)
     {
         output_buffer[i] = input_buffer[i];
     }
-
-    rs485_half_response();
 }
 
 void rs485_read_eeprom(unsigned char line_index)
@@ -604,8 +610,6 @@ void rs485_read_eeprom(unsigned char line_index)
     {
         output_buffer[5 + i] = eeprom_read_byte(line_index * 16 + i);
     }
-    
-    rs485_half_response();
 }
 
 void rs485_read_swithes_state()
@@ -613,21 +617,17 @@ void rs485_read_swithes_state()
     output_buffer[5] = reg_165_1;
     output_buffer[6] = reg_165_2;
     output_buffer[7] = reg_165_3;
-    rs485_half_response();
+    output_buffer[8] = relays_16 & 0xFF;
+    output_buffer[9] = relays_16 >> 8;
 }
 
-int display_overridden_flag = 1;
-int display_overridden[4];
 
 void rs485_frame_process()
 {
-
     unsigned char function = input_buffer[2];
     unsigned char subaddress_0 = input_buffer[3];
-    // unsigned char subaddress_1 = input_buffer[4];
+    unsigned char subaddress_1 = input_buffer[4];
     unsigned char * data = input_buffer + 5;
-
-  
     
     if (frame_received)
     {
@@ -642,26 +642,34 @@ void rs485_frame_process()
                 rs485_read_eeprom(subaddress_0);
             break;        
             case FUNC_READ_SWITCHES_STATE:
-                // rs485_read_swithes_state();
+                rs485_read_swithes_state();
             break;
             case FUNC_SET_DISPLAY:
                 display_overridden_flag =  data[0];
                 display_overridden[0] = data[1]; 
                 display_overridden[1] = data[2]; 
                 display_overridden[2] = data[3]; 
-                display_overridden[3] = data[4]; 
+                display_overridden[3] = data[4];
+                
+                output_buffer[5] = 0x0;
+                break;
+            case FUNC_RELAY_ON:
+                switch_relay_on(data[0], 255);
+                break;
+            case FUNC_RELAY_OFF:
+                switch_relay_off(data[0]);
+                break;                 
             default:
             {
                 output_buffer[5] = 0x31;
                 output_buffer[6] = 0x32;
                 output_buffer[7] = 0x33;
-                rs485_half_response();
-
             }
             break;
         }
-        
-        
+
+        // Send answer
+        rs485_half_response();
     }
 }
 
