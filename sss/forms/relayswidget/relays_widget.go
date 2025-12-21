@@ -15,6 +15,8 @@ type RelaysWidget struct {
 	loading bool
 
 	relaysWidgets []*RelayWidget
+
+	OnChanged func()
 }
 
 func NewRelaysWidget() *RelaysWidget {
@@ -124,7 +126,7 @@ func (c *RelaysWidget) OnCellChanged(row int, column int, text string, data inte
 			// ok
 		} else {
 			intVal, err := strconv.ParseInt(text, 10, 64)
-			if err != nil || (intVal < 1 || intVal > 2) && intVal != 255 {
+			if err != nil || (intVal < 0 || intVal > 1) && intVal != 255 {
 				c.LoadData()
 				return false
 			}
@@ -185,6 +187,9 @@ func (c *RelaysWidget) OnCellChanged(row int, column int, text string, data inte
 		item.OffTm2 = text
 	}
 	c.LoadData()
+	if c.OnChanged != nil {
+		c.OnChanged()
+	}
 	return true
 }
 
@@ -206,9 +211,9 @@ func (c *RelaysWidget) onKeyDown(key nuikey.Key, mods nuikey.KeyModifiers) bool 
 		if col == 1 || col == 3 || col == 5 || col == 7 {
 			currentValue := c.lvItems.GetCellText2(row, col)
 			options := []Option{
-				{"1", "ВКЛ"},
-				{"2", "ОТКЛ"},
-				{"", "ПУСТО"},
+				{"0", "низх"},
+				{"1", "восх"},
+				{"", "нет"},
 			}
 			c.SelectOptions(row, col, currentValue, options)
 			return true

@@ -621,7 +621,6 @@ void rs485_read_swithes_state()
     output_buffer[9] = relays_16 >> 8;
 }
 
-
 void rs485_frame_process()
 {
     unsigned char function = input_buffer[2];

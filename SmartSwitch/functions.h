@@ -635,7 +635,7 @@ void rs485_frame_process()
         switch(function)
         {
             case FUNC_WRITE_EEPROM:
-                // rs485_write_eeprom(subaddress_0, data);
+                rs485_write_eeprom(subaddress_0, data);
             break;
             case FUNC_READ_EEPROM:
                 rs485_read_eeprom(subaddress_0);

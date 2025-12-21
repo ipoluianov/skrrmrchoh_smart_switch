@@ -1,6 +1,7 @@
 package serialinterface
 
 import (
+	"encoding/hex"
 	"errors"
 	"sync"
 	"time"
@@ -21,9 +22,15 @@ type SerialInterface struct {
 	SwitchesStatus          [24]bool
 	RelaysStatus            [16]bool
 
-	mtx                  sync.Mutex
-	framesToSend         []*Transaction
-	completeTransactions []*Transaction
+	mtx          sync.Mutex
+	framesToSend []*Transaction
+	eepromLines  []*EEPROMLine
+	//completeTransactions []*Transaction
+}
+
+type EEPROMLine struct {
+	LineIndex int
+	Data      []byte
 }
 
 type Transaction struct {
@@ -44,7 +51,7 @@ func NewSerialInterface() *SerialInterface {
 
 	c.PortName = "COM5"
 	c.BaudRate = 115200
-	c.Timeout = 200
+	c.Timeout = 500
 
 	return &c
 }
@@ -69,6 +76,39 @@ func (c *SerialInterface) IsSwitchOn(switchIndex int) bool {
 		return false
 	}
 	return c.SwitchesStatus[switchIndex]
+}
+
+func (c *SerialInterface) WriteEEPROM(lineData []byte, lineIndex int) {
+	var frame Frame
+	frame.AddrDest = 0x06
+	frame.AddrSrc = 0x00
+	frame.Function = 0x01
+	frame.SubAddr1 = byte(lineIndex)
+	frame.Data = make([]byte, 16)
+	copy(frame.Data, lineData)
+	c.SendFrame(&frame)
+	logger.Println("Wrote EEPROM line", lineIndex, "data:", hex.EncodeToString(lineData))
+}
+
+func (c *SerialInterface) ResetReeadEEPROMBuffer() {
+	c.eepromLines = make([]*EEPROMLine, 0)
+}
+
+func (c *SerialInterface) GetEEPROMLine(index int) *EEPROMLine {
+	if index < 0 || index >= len(c.eepromLines) {
+		return nil
+	}
+	return c.eepromLines[index]
+}
+
+func (c *SerialInterface) ReadEEPROM(lineIndex int) {
+	var frame Frame
+	frame.AddrDest = 0x06
+	frame.AddrSrc = 0x00
+	frame.Function = 0x02
+	frame.SubAddr1 = byte(lineIndex)
+	c.SendFrame(&frame)
+	logger.Println("Read EEPROM line", lineIndex)
 }
 
 func (c *SerialInterface) SwitchRelay(relayIndex int, turnOn bool) {
@@ -96,13 +136,13 @@ func (c *SerialInterface) SendFrame(frame *Frame) {
 	c.mtx.Unlock()
 }
 
-func (c *SerialInterface) GetCompletedTransactions() []*Transaction {
+/*func (c *SerialInterface) GetCompletedTransactions() []*Transaction {
 	c.mtx.Lock()
 	trs := c.completeTransactions
 	c.completeTransactions = make([]*Transaction, 0)
 	c.mtx.Unlock()
 	return trs
-}
+}*/
 
 func (c *SerialInterface) AddFrameRelaysStateIfNotExists() bool {
 	if time.Since(c.dtLastRelayStateRequest) < 100*time.Millisecond {
@@ -134,7 +174,7 @@ func (c *SerialInterface) ProcessTransactions() {
 	for _, tr := range framesToSend {
 		c.processTransaction(tr)
 		c.mtx.Lock()
-		c.completeTransactions = append(c.completeTransactions, tr)
+		//c.completeTransactions = append(c.completeTransactions, tr)
 		c.mtx.Unlock()
 	}
 }
@@ -207,6 +247,21 @@ func (c *SerialInterface) ProcessReceivedFrame(tr *Transaction) {
 			c.RelaysStatus[i] = (tr.ReceivedFrame.Data[byteIndex]&(1<<bitIndex) != 0)
 			// logger.Println("Relay", i, "status:", c.RelaysStatus[i])
 		}
+	}
+
+	if tr.ReceivedFrame.Function == 0x02 {
+		if len(tr.ReceivedFrame.Data) < 16 {
+			return
+		}
+		lineIndex := int(tr.ReceivedFrame.SubAddr1)
+		lineData := make([]byte, 16)
+		copy(lineData, tr.ReceivedFrame.Data[:16])
+		eepromLine := &EEPROMLine{
+			LineIndex: lineIndex,
+			Data:      lineData,
+		}
+		c.eepromLines = append(c.eepromLines, eepromLine)
+		logger.Println("Received EEPROM line", lineIndex, "data:", hex.EncodeToString(lineData))
 	}
 }
 

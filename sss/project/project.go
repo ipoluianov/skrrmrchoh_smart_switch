@@ -173,11 +173,11 @@ func (c *Project) DisplayTextForFront(frontStr string) string {
 	if frontIndex == 255 {
 		return ""
 	}
-	if frontIndex == 1 {
-		return "ВКЛ"
+	if frontIndex == 0 {
+		return "низх"
 	}
-	if frontIndex == 2 {
-		return "ОТКЛ"
+	if frontIndex == 1 {
+		return "восх"
 	}
 	return ""
 }
@@ -260,4 +260,23 @@ func (c *Project) SetEscortBlock(value int) {
 
 func (c *Project) SetEscortTimer(value int) {
 	c.EscortTimer = value
+}
+
+func (c *Project) ToRelayTable() *RelayTable {
+	var table RelayTable
+	for rowIndex, item := range c.Items {
+		table.Rows[rowIndex].Cells[1] = item.OnSW1
+		table.Rows[rowIndex].Cells[2] = item.OnSW2
+		table.Rows[rowIndex].Cells[3] = item.OffSW1
+		table.Rows[rowIndex].Cells[4] = item.OffSW2
+		table.Rows[rowIndex].Cells[5] = item.OnRl1
+		table.Rows[rowIndex].Cells[6] = item.OnRl2
+		table.Rows[rowIndex].Cells[7] = item.OffRl1
+		table.Rows[rowIndex].Cells[8] = item.OffRl2
+		table.Rows[rowIndex].Cells[9] = item.OnTm1
+		table.Rows[rowIndex].Cells[10] = item.OnTm2
+		table.Rows[rowIndex].Cells[11] = item.OffTm1
+		table.Rows[rowIndex].Cells[12] = item.OffTm2
+	}
+	return &table
 }

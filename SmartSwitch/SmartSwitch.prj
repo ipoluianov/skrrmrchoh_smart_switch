@@ -150,7 +150,7 @@ WarningUnknownPragma=1
 LinkerWarnings=1
 DebugBootLoader=0
 WatchAVR8LAutoVariables=0
-Build=774
+Build=775
 UseEEPROMLocation0=1
 ExternalInterruptVectors=0
 IncludePath0=
@@ -217,7 +217,7 @@ LibraryPath28=
 LibraryPath29=
 LibraryPath30=
 LibraryPath31=
-COFFileTimeStamp=1536472406
+COFFileTimeStamp=1536531648
 OutputFormat=1
 EnhancedFunctionParameterPassing=1
 WarningCantInlineFunction=1
@@ -561,11 +561,11 @@ BK9=-1
 [FoldedCode9]
 Blocks=0
 [Bookmarks10]
-TimeStamp=1533563144
-Row=14
-Column=33
+TimeStamp=1536531620
+Row=591
+Column=48
 ScrollPosX=0
-ScrollPosY=0
+ScrollPosY=585
 BK0=-1
 BK1=-1
 BK2=-1
@@ -579,7 +579,7 @@ BK9=-1
 [CompilerDebug]
 RebuildAll=1
 LinkageInformationPresent=0
-Build=774
+Build=775
 UseEEPROMLocation0=1
 Chip=ATmega32A
 CPUClock=16000000
@@ -693,10 +693,10 @@ L13=Enhanced function parameters passing: Yes
 L14=Automatic register allocation: Yes
 L15=Smart register allocation: Yes
 L16=
-L17=Build: 774
+L17=Build: 775
 L18=3837 line(s) compiled
 L19=No errors
-L20=2 warning(s)
+L20=1 warning(s)
 L21=
 L22=Bit variables area: 0x2 to 0x2
 L23=Bit variables size: 1 byte(s)
@@ -714,8 +714,8 @@ L34=
 L35=Heap size: 0 byte(s)
 L36=
 L37=EEPROM usage: 528 byte(s), 51.6% of EEPROM
-L38=Program size: 5638 words (11276 bytes), 34.4% of FLASH
-L39=583 words (1166 bytes), 9.4% reduced by Code Compression
+L38=Program size: 5685 words (11370 bytes), 34.7% of FLASH
+L39=583 words (1166 bytes), 9.3% reduced by Code Compression
 Lines=39
 [BuildInfoAssembler]
 L1=AVRASM: AVR macro assembler 2.1.30 (build 592 Nov  7 2008 12:38:17)
@@ -724,7 +724,7 @@ L3=
 L4=ATmega32A memory use summary [bytes]:
 L5=Segment   Begin    End      Code   Data   Used    Size   Use%
 L6=---------------------------------------------------------------
-L7=[.cseg] 0x000000 0x002c0c  10894    382  11276   32768  34.4%
+L7=[.cseg] 0x000000 0x002c6a  10988    382  11370   32768  34.7%
 L8=[.dseg] 0x000060 0x000387      0    295    295    2048  14.4%
 L9=[.eseg] 0x000000 0x000210      0    528    528    1024  51.6%
 L10=
@@ -929,8 +929,6 @@ Blocks=0
 Blocks=0
 [FoldedCode20]
 Blocks=0
-[FoldedCode10]
-Blocks=0
 [HeadersList]
 Files=1
 F1=C:\src\github\skrrmrchoh_smart_switch\SmartSwitch\SmartSwitch.c
@@ -953,6 +951,8 @@ BK9=-1
 [FoldedCode21]
 Blocks=0
 [FoldedCode2]
+Blocks=0
+[FoldedCode10]
 Blocks=0
 [Header1]
 Files=16

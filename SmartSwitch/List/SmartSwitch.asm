@@ -1554,8 +1554,7 @@ _0xB:
 	MOV  R30,R17
 	LDD  R17,Y+1
 	LDD  R16,Y+0
-	ADIW R28,4
-	RET
+	RJMP _0x20C0003
 ; .FEND
 ;#include <interrupts.h>
 _timer1_compa_isr:
@@ -2226,7 +2225,7 @@ _0x9A:
 	ST   Y,R30
 	RJMP _0x96
 _0x97:
-	RJMP _0x20C0003
+	RJMP _0x20C0004
 ; .FEND
 _edge_detection:
 ; .FSTART _edge_detection
@@ -2311,7 +2310,7 @@ _0xA8:
 	ST   Y,R30
 	RJMP _0x9D
 _0x9E:
-	RJMP _0x20C0003
+	RJMP _0x20C0004
 ; .FEND
 _relays_edge_detection:
 ; .FSTART _relays_edge_detection
@@ -2429,7 +2428,7 @@ _0xB8:
 	STS  _relays_16,R30
 	STS  _relays_16+1,R31
 _0xB6:
-	RJMP _0x20C0003
+	RJMP _0x20C0004
 ; .FEND
 _execute_EE_line:
 ; .FSTART _execute_EE_line
@@ -2565,7 +2564,7 @@ _0xCC:
 	ST   Y,R30
 	RJMP _0xC5
 _0xC6:
-	RJMP _0x20C0003
+	RJMP _0x20C0004
 ; .FEND
 _relays_event_check:
 ; .FSTART _relays_event_check
@@ -2632,7 +2631,7 @@ _0xD9:
 	ST   Y,R30
 	RJMP _0xD2
 _0xD3:
-_0x20C0003:
+_0x20C0004:
 	ADIW R28,1
 	RET
 ; .FEND
@@ -2744,9 +2743,61 @@ _rs485_half_response:
 	RCALL _rs485_transmit_first_byte
 	RET
 ; .FEND
+_rs485_write_eeprom:
+; .FSTART _rs485_write_eeprom
+	ST   -Y,R27
+	ST   -Y,R26
+	ST   -Y,R17
 ;	line_index -> Y+3
 ;	*data -> Y+1
 ;	i -> R17
+	LDI  R17,LOW(0)
+_0xF3:
+	CPI  R17,16
+	BRSH _0xF4
+	LDD  R26,Y+3
+	LDI  R30,LOW(16)
+	MUL  R30,R26
+	MOVW R30,R0
+	MOVW R26,R30
+	MOV  R30,R17
+	LDI  R31,0
+	ADD  R30,R26
+	ADC  R31,R27
+	MOVW R0,R30
+	LDD  R26,Y+1
+	LDD  R27,Y+1+1
+	CLR  R30
+	ADD  R26,R17
+	ADC  R27,R30
+	LD   R30,X
+	MOVW R26,R0
+	CALL __EEPROMWRB
+	SUBI R17,-1
+	RJMP _0xF3
+_0xF4:
+	LDI  R17,LOW(5)
+_0xF6:
+	CPI  R17,23
+	BRSH _0xF7
+	MOV  R26,R17
+	LDI  R27,0
+	SUBI R26,LOW(-_output_buffer)
+	SBCI R27,HIGH(-_output_buffer)
+	MOV  R30,R17
+	LDI  R31,0
+	SUBI R30,LOW(-_input_buffer)
+	SBCI R31,HIGH(-_input_buffer)
+	LD   R30,Z
+	ST   X,R30
+	SUBI R17,-1
+	RJMP _0xF6
+_0xF7:
+	LDD  R17,Y+0
+_0x20C0003:
+	ADIW R28,4
+	RET
+; .FEND
 _rs485_read_eeprom:
 ; .FSTART _rs485_read_eeprom
 	ST   -Y,R26
@@ -2818,6 +2869,9 @@ _rs485_frame_process:
 	LDI  R26,HIGH(0x1)
 	CPC  R31,R26
 	BRNE _0xFF
+	ST   -Y,R16
+	MOVW R26,R20
+	RCALL _rs485_write_eeprom
 	RJMP _0xFE
 _0xFF:
 	CPI  R30,LOW(0x2)
