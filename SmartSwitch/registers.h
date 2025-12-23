@@ -182,7 +182,7 @@ i2c_stop();
         }             
         */
      
-settings[0]=32; //how many lines of settings are there;
+/*settings[0]=32; //how many lines of settings are there;
 settings[1]=1;  //invert switches, 0-NO, 1-YES
 settings[2]=1;   //how many minutes switching relays OFF will be prohibited when function is used
                     // 0= function can't be used; 5 is maximum value;
@@ -746,7 +746,7 @@ settings_line_32[11] = 0xFF;
 settings_line_32[12] = 0xFF;
 settings_line_32[13] = 0xFF;
 settings_line_32[14] = 0xFF;
-settings_line_32[15] = 0xFF;
+settings_line_32[15] = 0xFF;   */
 
 sec_error_counter = sec_error_counter_value;
 

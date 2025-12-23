@@ -72,7 +72,23 @@ func (c *EepromWidget) BtnCompile() {
 }
 
 func (c *EepromWidget) BtnLoadFromDevice() {
+	serialinterface.Instance.ResetReeadEEPROMBuffer()
+	for lineIndex := 0; lineIndex < 64; lineIndex++ {
+		serialinterface.Instance.ReadEEPROM(lineIndex)
+		time.Sleep(10 * time.Millisecond)
+	}
+	time.Sleep(500 * time.Millisecond)
+	c.clearEEPROM()
+	for lineIndex := 0; lineIndex < 64; lineIndex++ {
+		eepromLine := serialinterface.Instance.GetEEPROMLine(lineIndex)
+		if eepromLine != nil {
+			for i := 0; i < 16; i++ {
+				c.lvItems.SetCellText2(lineIndex, i+1, formatValue(int(eepromLine.Data[i])))
+			}
+		}
+	}
 
+	c.colorTable()
 }
 
 func (c *EepromWidget) BtnWriteToDevice() {
@@ -385,6 +401,24 @@ func (c *EepromWidget) Compile() {
 	c.lvItems.SetCellText2(0, 3, formatValue(project.CurrentProject.GetEscortBlock()))
 	c.lvItems.SetCellText2(0, 4, formatValue(project.CurrentProject.GetEscortTimer()))
 
+	c.colorTable()
+
+	// Fill EEPROM Object
+	eeprom := project.NewEEPROM()
+	for i := 0; i < c.lvItems.RowCount(); i++ {
+		for j := 0; j < c.lvItems.ColumnCount(); j++ {
+			cellText := c.lvItems.GetCellText2(i, j)
+			eeprom.Rows[i].Cells[j] = cellText
+		}
+	}
+	project.CurrentEEPROM = eeprom
+
+	if c.OnCompiled != nil {
+		c.OnCompiled()
+	}
+}
+
+func (c *EepromWidget) colorTable() {
 	// if FF = grey color
 	for i := 0; i < c.lvItems.RowCount(); i++ {
 		for j := 1; j < c.lvItems.ColumnCount(); j++ {
@@ -401,20 +435,6 @@ func (c *EepromWidget) Compile() {
 	c.lvItems.SetCellColor(0, 2, ui.ColorFromHex("#004080"))
 	c.lvItems.SetCellColor(0, 3, ui.ColorFromHex("#004080"))
 	c.lvItems.SetCellColor(0, 4, ui.ColorFromHex("#004080"))
-
-	// Fill EEPROM Object
-	eeprom := project.NewEEPROM()
-	for i := 0; i < c.lvItems.RowCount(); i++ {
-		for j := 0; j < c.lvItems.ColumnCount(); j++ {
-			cellText := c.lvItems.GetCellText2(i, j)
-			eeprom.Rows[i].Cells[j] = cellText
-		}
-	}
-	project.CurrentEEPROM = eeprom
-
-	if c.OnCompiled != nil {
-		c.OnCompiled()
-	}
 }
 
 func (c *EepromWidget) clearEEPROM() {
